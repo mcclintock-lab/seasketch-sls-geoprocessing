@@ -8,12 +8,16 @@
 // https://github.com/mcclintock-lab/seasketch-next/wiki/Report-Request-Protocol
 module.exports = geoprocessor => {
   return (event, context, callback) => {
-    const response = geoprocessor(event);
+    var fs = event.body ? JSON.parse(event.body) : event;
+    const response = geoprocessor(fs);
     if (response.then) {
       // async. Not supported just yet
       throw new Error("Not yet supported");
     } else {
-      callback(null, response);
+      callback(null, {
+        status: 200,
+        body: response
+      });
     }
   };
 };
