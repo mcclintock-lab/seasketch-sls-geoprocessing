@@ -16,7 +16,7 @@ module.exports = geoprocessor => {
     } else {
       callback(null, {
         status: 200,
-        body: response
+        body: JSON.stringify(response)
       });
     }
   };
