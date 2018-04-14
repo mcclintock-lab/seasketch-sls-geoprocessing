@@ -1,0 +1,20 @@
+# Rename me
+service: template
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - seasketch-sls-geoprocessing
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: test
+
+custom:
+  webpack:
+    webpackConfig: ./webpack.config.js
+    includeModules: true
+
+package:
+  individually: true

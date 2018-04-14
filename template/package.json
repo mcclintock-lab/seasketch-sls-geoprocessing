@@ -1,0 +1,27 @@
+{
+  "name": "template",
+  "version": "1.0.0",
+  "description": "SeaSketch geoprocessing project template",
+  "scripts": {
+    "test": "jest"
+  },
+  "author": "Chad Burt <chad@underbluewaters.net>",
+  "license": "MIT",
+  "dependencies": {
+    "source-map-support": "^0.5.4",
+    "seasketch-sls-geoprocessing": "latest"
+  },
+  "devDependencies": {
+    "babel-core": "^6.26.0",
+    "babel-jest": "^22.4.3",
+    "babel-loader": "^7.1.3",
+    "babel-plugin-source-map-support": "^2.0.1",
+    "babel-preset-env": "^1.6.0",
+    "jest": "^22.4.3",
+    "serverless": "^1.26.1",
+    "serverless-offline": "^3.20.1",
+    "serverless-webpack": "latest",
+    "webpack": "^4.2.0",
+    "webpack-node-externals": "^1.7.2"
+  }
+}
