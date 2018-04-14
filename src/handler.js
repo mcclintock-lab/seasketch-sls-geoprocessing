@@ -15,7 +15,7 @@ module.exports = geoprocessor => {
       throw new Error("Not yet supported");
     } else {
       callback(null, {
-        status: 200,
+        statusCode: 200,
         isBase64Encoded: false,
         headers: {
           "Access-Control-Allow-Origin" : "*",
