@@ -6,6 +6,8 @@ events:
   - http:
       method: get
       path: replace-me
+      cors: true
   - http:
       method: post
       path: replace-me
+      cors: true
