@@ -2,6 +2,7 @@ handler: functions/replace-me/index.default
 defaultETASeconds: 0.5
 description: Add you description of replace-me here
 clientside: false
+timeout: 4
 events:
   - http:
       method: get
