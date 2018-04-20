@@ -22,6 +22,7 @@
     "serverless-offline": "^3.20.1",
     "serverless-webpack": "latest",
     "webpack": "^4.2.0",
-    "webpack-node-externals": "^1.7.2"
+    "webpack-node-externals": "^1.7.2",
+    "serverless-log-forwarding": "^1.1.6"
   }
 }
