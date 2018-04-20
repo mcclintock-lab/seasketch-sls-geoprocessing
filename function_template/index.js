@@ -1,13 +1,16 @@
-import { handler } from "seasketch-sls-geoprocessing";
+import { asHandler } from "seasketch-sls-geoprocessing";
 import area from "@turf/area";
 
-export default handler((sketch) => {
+const calculateArea = async (sketch) => {
   return {
     area: area(sketch)
-  };
-});
+  }
+}
 
-// // Alternatively, an async report would look like this
+export default calculateArea;
+export const handler = asHandler(calculateArea);
+
+// More complex example:
 // import { handler, s3PUT } from "seasketch-sls-geoprocessing";
 //
 // export default handler(async (sketches) => {

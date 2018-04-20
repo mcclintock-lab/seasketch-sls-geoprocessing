@@ -1,14 +1,8 @@
-handler: functions/replace-me/index.default
-defaultETASeconds: 0.5
-description: Add you description of replace-me here
-clientside: false
+handler: functions/replace-me/index.handler
+description: Add your description of replace-me here
 timeout: 4
+memorySize: 128
 events:
   - http:
-      method: get
-      path: replace-me
-      cors: true
-  - http:
-      method: post
-      path: replace-me
-      cors: true
+    method: post
+    path: replace-me
