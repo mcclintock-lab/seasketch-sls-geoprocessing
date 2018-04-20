@@ -4,5 +4,5 @@ timeout: 4
 memorySize: 128
 events:
   - http:
-    method: post
-    path: replace-me
+      method: post
+      path: replace-me
