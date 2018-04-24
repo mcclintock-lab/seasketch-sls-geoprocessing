@@ -36,6 +36,42 @@ const updateYML = async (serverless, options) => {
   return await fs.writeFile("./serverless.yml", yawn.yaml);
 };
 
+const addCommonResources = (serverless, options) => {
+  var provider = serverless.service.provider;
+  // update environment
+  if (!provider.environment) {
+    provider.environment = {};
+  }
+  provider.environment["RESULTS_SQS_ENDPOINT"] = {
+    "Fn::ImportValue": "ReportResultsQueueEndpoint"
+  };
+  provider.environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
+  // update iamRoleStatements
+  if (!provider.iamRoleStatements) {
+    provider.iamRoleStatements = [];
+  }
+  provider.iamRoleStatements.push({
+    Effect: "Allow",
+    Action: ["sqs:*"],
+    Resource: { "Fn::ImportValue": "ReportResultsQueueArn" }
+  });
+  // Log forwarding
+  if (!serverless.service.custom) {
+    serverless.service.custom = {};
+  }
+  serverless.service.custom.logForwarding = {
+    destinationARN: {
+      "Fn::ImportValue": "ReportLogsForwarder"
+    }
+  };
+  serverless.service.custom.webpack = {
+    webpackConfig: './webpack.config.js',
+    includeModules: true,
+    ...serverless.service.custom.webpack
+  };
+
+};
+
 class SeaSketchGeoprocessingPlugin {
   constructor(serverless, options) {
     this.serverless = serverless;
@@ -58,6 +94,11 @@ class SeaSketchGeoprocessingPlugin {
     this.hooks = {
       "add_function:updateYML": updateYML.bind(this, serverless, options),
       "add_function:createDirs": createDirectories.bind(
+        this,
+        serverless,
+        options
+      ),
+      "before:package:initialize": addCommonResources.bind(
         this,
         serverless,
         options
