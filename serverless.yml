@@ -4,7 +4,7 @@ service: SeaSketchReportingCore
 provider:
   name: aws
   runtime: nodejs8.10
-  stage: test
+  stage: production
   memorySize: 512 # Default memory size. Can be set in individual functions too
   region: us-west-2
 
