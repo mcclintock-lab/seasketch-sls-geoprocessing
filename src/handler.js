@@ -7,10 +7,18 @@ var sqsParams = {
   DelaySeconds: 0,
   QueueUrl: process.env.RESULTS_SQS_ENDPOINT
 };
+var lastRequestId = null;
 
 // Wraps geoprocessing functions to meet lambda requirements
 module.exports = geoprocessor => {
   return async (event, context) => {
+    if (context.awsRequestId === lastRequestId) {
+      // don't replay
+      console.log('cancelling since event is being replayed');
+      return null;
+    } else {
+      lastRequestId = context.awsRequestId;
+    }
     const startTime = new Date().getTime();
     var fs;
     if (event.body) {
