@@ -10,8 +10,8 @@ var sqsParams = {
 
 // Wraps geoprocessing functions to meet lambda requirements
 module.exports = geoprocessor => {
-  const startTime = new Date().getTime();
   return async (event, context) => {
+    const startTime = new Date().getTime();
     var fs;
     if (event.body) {
       if (typeof event.body === 'string') {
@@ -28,7 +28,7 @@ module.exports = geoprocessor => {
     const response = await geoprocessor(fs);
     const results = {
       results: response,
-      duration: new Date().getTime() - startTime,
+      duration: (new Date().getTime()) - startTime,
       requestId: context.awsRequestId,
       invocationId: event.invocationId
     };
