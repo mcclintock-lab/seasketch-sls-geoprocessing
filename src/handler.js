@@ -33,7 +33,7 @@ module.exports = geoprocessor => {
     if (event.invocationId) {
       console.log(`invocationId: ${event.invocationId}`)
     }
-    const response = await geoprocessor(fs);
+    const response = await geoprocessor(fs, event.invocationId);
     const results = {
       results: response,
       duration: (new Date().getTime()) - startTime,

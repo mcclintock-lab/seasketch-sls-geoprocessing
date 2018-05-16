@@ -1,2 +1,4 @@
 module.exports = require("./src/plugin");
-module.exports.asHandler = require("./src/handler");
+const asHandler = require("./src/handler");
+module.exports.asHandler = asHandler;
+module.exports.amiHandler = asHandler(require("./src/amiHandler"));

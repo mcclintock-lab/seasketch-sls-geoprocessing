@@ -92,6 +92,16 @@ const addCommonResources = (serverless, options) => {
     functions[key].environment["S3_KEY_PREFIX"] = `${
       serverless.service.service
     }/${key}/`;
+
+    if (functions[key].ami) {
+      functions[key].environment = {
+        ...functions[key].environment,
+        FUNCTION_ENV_VAR_DECLARATIONS: Object.keys(functions[key].environment).map((k) => `export ${k}="${functions[key].environment[k]}"`).join('\n'),
+        WORKER_SH: fs.readFileSync(process.cwd() + "/" + functions[key].worker).toString(),
+        WORKER_AMI: functions[key].ami,
+        WORKER_TIMEOUT: functions[key].workerTimeout
+      }
+    }
   }
   // update iamRoleStatements
   if (!provider.iamRoleStatements) {

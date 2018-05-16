@@ -8,18 +8,19 @@
   },
   "repository": {
     "type": "git",
-    "url":
-      "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
+    "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
   },
-  "keywords": ["serverless", "seasketch", "geoprocessing"],
+  "keywords": [
+    "serverless",
+    "seasketch",
+    "geoprocessing"
+  ],
   "author": "Chad Burt",
   "license": "MIT",
   "bugs": {
-    "url":
-      "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/issues"
+    "url": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/issues"
   },
-  "homepage":
-    "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
+  "homepage": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
   "dependencies": {
     "ncp": "^2.0.0",
     "uuid-validate": "0.0.2",
