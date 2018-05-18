@@ -29,7 +29,7 @@ module.exports = async (geojson, invocationId) => {
     }
     EOF
     )
-    aws sqs send-message --message-body $MESSAGE_BODY --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
+    aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
     # shutdown
     sudo shutdown now
   `;
