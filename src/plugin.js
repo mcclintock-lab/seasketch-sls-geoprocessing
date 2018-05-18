@@ -92,6 +92,7 @@ const addCommonResources = (serverless, options) => {
     functions[key].environment["S3_KEY_PREFIX"] = `${
       serverless.service.service
     }/${key}/`;
+    functions[key].environment["S3_REGION"] = provider.region;
 
     if (functions[key].ami) {
       functions[key].environment = {
@@ -99,7 +100,7 @@ const addCommonResources = (serverless, options) => {
         FUNCTION_ENV_VAR_DECLARATIONS: Object.keys(functions[key].environment).map((k) => `export ${k}="${functions[key].environment[k]}"`).join('\n'),
         WORKER_SH: fs.readFileSync(process.cwd() + "/" + functions[key].worker).toString(),
         WORKER_AMI: functions[key].ami,
-        WORKER_TIMEOUT: functions[key].workerTimeout
+        WORKER_TIMEOUT: functions[key].workerTimeout || 10
       }
     }
   }

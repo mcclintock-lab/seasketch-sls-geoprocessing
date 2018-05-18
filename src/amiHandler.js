@@ -1,10 +1,12 @@
 module.exports = async (geojson, invocationId) => {
   // build bash startup script
   const sh = `
+    sudo shutdown -P +${process.env.WORKER_TIMEOUT} &
+    start=$(date +%s)
     export INVOCATION_ID=${invocationId}
     # setup logging
     # set env vars
-    export S3_PATH=https://s3-${process.env.AWS_REGION}.amazonaws.com/${process.env.AWS_BUCKET}/${process.env.S3_KEY_PREFIX}/${invocationId}
+    export S3_PATH=https://s3-${process.env.S3_REGION}.amazonaws.com/${process.env.AWS_BUCKET}/${process.env.S3_KEY_PREFIX}${invocationId}
     ${process.env.FUNCTION_ENV_VAR_DECLARATIONS}
     export WORKER_TIMEOUT=${process.env.WORKER_TIMEOUT}
     # set geojson env var
@@ -13,7 +15,18 @@ module.exports = async (geojson, invocationId) => {
     EOF
     # do worker script
     ${process.env.WORKER_SH}
+    # calculate duration
+    end=$(date +%s)
+    RUNTIME=$(((end-start)*1000))
     # send results
+    export MESSAGE_BODY=$(cat <<EOF
+    {
+      "results": $RESULTS,
+      "duration": $RUNTIME,
+      "invocationId": "$INVOCATION_ID"
+    }
+    EOF
+    )
     aws sqs send-message --message-body $MESSAGE_BODY --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
     # shutdown
     sudo shutdown now
