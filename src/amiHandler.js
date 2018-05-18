@@ -2,17 +2,19 @@ module.exports = async (geojson, invocationId) => {
   // build bash startup script
   const sh = `
     sudo shutdown -P +${process.env.WORKER_TIMEOUT} &
+    # setup logging
     start=$(date +%s)
     export INVOCATION_ID=${invocationId}
-    # setup logging
     # set env vars
-    export S3_PATH=https://s3-${process.env.S3_REGION}.amazonaws.com/${process.env.AWS_BUCKET}/${process.env.S3_KEY_PREFIX}${invocationId}
+    export AWS_DEFAULT_REGION=${process.env.S3_REGION}
+    export S3_PATH=s3://${process.env.S3_BUCKET}/${process.env.S3_KEY_PREFIX}${invocationId}
     ${process.env.FUNCTION_ENV_VAR_DECLARATIONS}
     export WORKER_TIMEOUT=${process.env.WORKER_TIMEOUT}
     # set geojson env var
     read -d '' GEOJSON << EOF
     ${JSON.stringify(geojson)}
     EOF
+    . ~/.nvm/nvm.sh
     # do worker script
     ${process.env.WORKER_SH}
     # calculate duration
