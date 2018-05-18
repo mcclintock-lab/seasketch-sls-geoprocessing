@@ -92,7 +92,7 @@ const addCommonResources = (serverless, options) => {
     functions[key].environment["S3_KEY_PREFIX"] = `${
       serverless.service.service
     }/${key}/`;
-    functions[key].environment["S3_REGION"] = provider.region;
+    functions[key].environment["S3_REGION"] = 'us-west-2';
     functions[key].environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
 
     if (functions[key].ami) {
