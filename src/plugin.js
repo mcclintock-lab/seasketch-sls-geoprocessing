@@ -102,7 +102,7 @@ const addCommonResources = (serverless, options) => {
     if (functions[key].ami) {
       functions[key].environment = {
         ...functions[key].environment,
-        FUNCTION_ENV_VAR_KEYS: Object.keys(functions[key].environment)
+        FUNCTION_ENV_VAR_KEYS: Object.keys(functions[key].environment),
         WORKER_SH: fs.readFileSync(process.cwd() + "/" + functions[key].worker).toString(),
         WORKER_AMI: functions[key].ami,
         WORKER_TIMEOUT: functions[key].workerTimeout || 10
