@@ -76,14 +76,6 @@ const updateYML = async (serverless, options) => {
 
 const addCommonResources = (serverless, options) => {
   var provider = serverless.service.provider;
-  // update environment
-  if (!provider.environment) {
-    provider.environment = {};
-  }
-  provider.environment["RESULTS_SQS_ENDPOINT"] = {
-    "Fn::ImportValue": "ReportResultsQueueEndpoint"
-  };
-  provider.environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
   var functions = serverless.service.functions;
   for (key in functions) {
     if (!functions[key].environment) {
@@ -94,6 +86,7 @@ const addCommonResources = (serverless, options) => {
     }/${key}/`;
     functions[key].environment["S3_REGION"] = 'us-west-2';
     functions[key].environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
+    functions[key].environment["RESULTS_SQS_ENDPOINT"] = { "Fn::ImportValue": "ReportResultsQueueEndpoint" };
 
     if (functions[key].ami) {
       functions[key].environment = {
