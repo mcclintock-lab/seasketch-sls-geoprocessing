@@ -76,6 +76,18 @@ const updateYML = async (serverless, options) => {
 
 const addCommonResources = (serverless, options) => {
   var provider = serverless.service.provider;
+  // update environment
+  if (!provider.environment) {
+    provider.environment = {};
+  }
+  provider.environment["RESULTS_SQS_ENDPOINT"] = {
+    "Fn::ImportValue": "ReportResultsQueueEndpoint"
+  };
+  provider.environment["S3_BUCKET"] = {
+    "Fn::ImportValue": "ReportOutputs"
+  };
+
+  provider.environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
   var functions = serverless.service.functions;
   for (key in functions) {
     if (!functions[key].environment) {
@@ -84,14 +96,13 @@ const addCommonResources = (serverless, options) => {
     functions[key].environment["S3_KEY_PREFIX"] = `${
       serverless.service.service
     }/${key}/`;
-    functions[key].environment["S3_REGION"] = 'us-west-2';
-    functions[key].environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
-    functions[key].environment["RESULTS_SQS_ENDPOINT"] = { "Fn::ImportValue": "ReportResultsQueueEndpoint" };
+    // functions[key].environment["S3_REGION"] = 'us-west-2';
+    // functions[key].environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
 
     if (functions[key].ami) {
       functions[key].environment = {
         ...functions[key].environment,
-        FUNCTION_ENV_VAR_DECLARATIONS: Object.keys(functions[key].environment).map((k) => `export ${k}="${functions[key].environment[k]}"`).join('\n'),
+        FUNCTION_ENV_VAR_KEYS: Object.keys(functions[key].environment)
         WORKER_SH: fs.readFileSync(process.cwd() + "/" + functions[key].worker).toString(),
         WORKER_AMI: functions[key].ami,
         WORKER_TIMEOUT: functions[key].workerTimeout || 10
