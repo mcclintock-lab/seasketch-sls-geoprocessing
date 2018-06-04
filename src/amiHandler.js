@@ -8,7 +8,7 @@ module.exports = async (geojson, invocationId) => {
     # set env vars
     export AWS_DEFAULT_REGION="${process.env.S3_REGION}"
     export S3_PATH="${process.env.S3_BUCKET}/${process.env.S3_KEY_PREFIX}${invocationId}"
-    ${process.env.FUNCTION_ENV_VAR_KEYS.map((k) => `export ${k}="${process.env[k]}"`).join("\n")}
+    ${process.env.FUNCTION_ENV_VAR_KEYS.split(',').map((k) => `export ${k}="${process.env[k]}"`).join("\n")}
     export WORKER_TIMEOUT=${process.env.WORKER_TIMEOUT}
     # set geojson env var
     read -d '' GEOJSON << EOF
@@ -43,4 +43,4 @@ module.exports = async (geojson, invocationId) => {
       workerType
     }
   }
-}
+};
