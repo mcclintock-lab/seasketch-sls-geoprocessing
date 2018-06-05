@@ -107,7 +107,6 @@ const addCommonResources = (serverless, options) => {
         WORKER_AMI: functions[key].ami,
         WORKER_TIMEOUT: functions[key].workerTimeout || 10
       }
-      console.log(functions[key].environment);
     }
   }
   // update iamRoleStatements
@@ -128,7 +127,6 @@ const addCommonResources = (serverless, options) => {
       "Fn::ImportValue": "ReportLogsForwarder"
     }
   };
-  console.log('log forwarding = ', serverless.service.custom.logForwarding);
   serverless.service.custom.webpack = {
     webpackConfig: "./webpack.config.js",
     includeModules: true,
