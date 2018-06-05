@@ -130,6 +130,12 @@ resources:
         Ref: ResultsQueue
       Export:
         Name: ReportResultsQueueEndpoint
+    LogsQueueEndpoint:
+      Description: sqs queue endpoint for logs
+      Value:
+        Ref: LogQueue
+      Export:
+        Name: LogsQueueEndpoint
     PostDeployMetadataQueueEndpoint:
       Description: sqs queue endpoint metadata about lambdas
       Value:

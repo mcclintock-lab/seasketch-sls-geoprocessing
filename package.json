@@ -6,6 +6,9 @@
   "scripts": {
     "test": "jest"
   },
+  "bin": {
+    "run-ami-tasks": "./bin/run-ami-tasks.js"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"

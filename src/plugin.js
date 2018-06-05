@@ -83,6 +83,9 @@ const addCommonResources = (serverless, options) => {
   provider.environment["RESULTS_SQS_ENDPOINT"] = {
     "Fn::ImportValue": "ReportResultsQueueEndpoint"
   };
+  provider.environment["LOGS_SQS_ENDPOINT"] = {
+    "Fn::ImportValue": "LogsQueueEndpoint"
+  };
   provider.environment["S3_BUCKET"] = {
     "Fn::ImportValue": "ReportOutputs"
   };
@@ -117,6 +120,11 @@ const addCommonResources = (serverless, options) => {
     Effect: "Allow",
     Action: ["sqs:*"],
     Resource: { "Fn::ImportValue": "ReportResultsQueueArn" }
+  });
+  provider.iamRoleStatements.push({
+    Effect: "Allow",
+    Action: ["sqs:*"],
+    Resource: { "Fn::ImportValue": "ReportsLogQueueArn" }
   });
   // Log forwarding
   if (!serverless.service.custom) {
