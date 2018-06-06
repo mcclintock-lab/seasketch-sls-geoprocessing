@@ -16,6 +16,16 @@ provider:
         Fn::GetAtt:
           - LogQueue
           - Arn
+    - Effect: "Allow"
+      Action: "s3:*"
+      Resource:
+        Fn::Join:
+          - ''
+          - - Fn::GetAtt:
+              - ReportOutputs
+              - Arn
+            - "/*"
+
 
 custom:
   webpack:
@@ -93,6 +103,55 @@ resources:
         QueueName: PostDeployMetadataQueue
         ReceiveMessageWaitTimeSeconds: 20
         VisibilityTimeout: 10 # seconds
+    AMIWorkerRole:
+      Type: AWS::IAM::Role
+      Properties:
+        RoleName: baseAmiWorkerRole
+        Path: /
+        AssumeRolePolicyDocument:
+          Version: '2012-10-17'
+          Statement:
+            - Effect: Allow
+              Principal:
+                Service:
+                  - ec2.amazonaws.com
+              Action:
+                - sts:AssumeRole
+        Policies:
+          - PolicyName: "root"
+            PolicyDocument:
+              Version: "2012-10-17"
+              Statement:
+                - Effect: "Allow"
+                  Action: "sqs:*"
+                  Resource:
+                    Fn::GetAtt:
+                      - LogQueue
+                      - Arn
+                - Effect: "Allow"
+                  Action: "sqs:*"
+                  Resource:
+                    Fn::GetAtt:
+                      - ResultsQueue
+                      - Arn
+                - Effect: "Allow"
+                  Action:
+                    - "s3:GetObject"
+                    - "s3:PutObject"
+                  Resource:
+                    Fn::Join:
+                      - ''
+                      - - Fn::GetAtt:
+                          - ReportOutputs
+                          - Arn
+                        - "/*"
+    AMIWorkerInstanceProfile:
+      Type: "AWS::IAM::InstanceProfile"
+      Properties:
+        Path: "/geoprocessing/iamWorker/"
+        Roles:
+          - "baseAmiWorkerRole"
+        InstanceProfileName: "amiWorkerProfile"
   Outputs:
     ReportOutputsBucket:
       Description: s3 bucket
