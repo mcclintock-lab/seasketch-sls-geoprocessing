@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 const { spawn } = require('child_process');
-const worker = spawn('bash', [process.argv[2]]);
+const worker = spawn('stdbuf', ['-i0','-o0','-e0', //disable all buffering
+  'bash', process.argv[2]]);
 
 worker.stdout.on('data', (data) => {
   console.log("\x1b[45m", data.toString());
@@ -16,4 +17,5 @@ worker.stderr.on('data', (data,e) => {
 
 worker.on('close', (code) => {
   console.log(`child process exited with code ${code}`);
+  process.exit(0);
 });
