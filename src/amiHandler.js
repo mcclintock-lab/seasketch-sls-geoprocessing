@@ -98,12 +98,12 @@ sudo shutdown -h now
     UserData: Buffer.from(sh).toString('base64')
   }, (e, data) => console.log(e, data));
 
-  const ami = process.env.WORKER_AMI;
+  const launchTemplate = process.env.WORKER_LAUNCH_TEMPLATE;
   const workerType = process.env.WORKER_TYPE;
   return {
     sh,
     worker: {
-      ami,
+      launchTemplate,
       workerId: '123',
       workerType
     }

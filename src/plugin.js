@@ -102,12 +102,12 @@ const addCommonResources = (serverless, options) => {
     functions[key].environment["S3_REGION"] = 'us-west-2';
     functions[key].environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
 
-    if (functions[key].ami) {
+    if (functions[key].launchTemplate) {
       functions[key].environment = {
         ...functions[key].environment,
         FUNCTION_ENV_VAR_KEYS: Object.keys(functions[key].environment).join(","),
         WORKER_SH: fs.readFileSync(process.cwd() + "/" + functions[key].worker).toString(),
-        WORKER_AMI: functions[key].ami,
+        WORKER_LAUNCH_TEMPLATE: functions[key].launchTemplate,
         WORKER_TIMEOUT: functions[key].workerTimeout || 10
       }
     }
