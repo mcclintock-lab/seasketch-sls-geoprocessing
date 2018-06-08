@@ -1,3 +1,7 @@
+const AWS = require("aws-sdk");
+const ec2 = new AWS.EC2({apiVersion: '2016-11-15', region: 'us-west-2'});
+AWS.config.update({ region: 'us-west-2' });
+
 module.exports = async (geojson, invocationId) => {
   // build bash startup script
   const tasks = `
@@ -39,7 +43,11 @@ aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RE
   const sh = `
 sudo shutdown -h -P +${process.env.WORKER_TIMEOUT} &
 . ~/.nvm/nvm.sh
-npm install -g git+ssh://git@github.com:mcclintock-lab/seasketch-sls-geoprocessing.git
+npm install -g aws-sdk git+ssh://git@github.com:mcclintock-lab/seasketch-sls-geoprocessing.git
+export RESULTS_SQS_ENDPOINT="${process.env.RESULTS_SQS_ENDPOINT}"
+export LOGS_SQS_ENDPOINT="${process.env.LOGS_SQS_ENDPOINT}"
+export AWS_DEFAULT_REGION="${process.env.S3_REGION}"
+export INVOCATION_ID="${invocationId}"
 cat >./tasks.sh <<'SSEOL'
 ${tasks}
 SSEOL
@@ -60,6 +68,35 @@ fi
 sudo shutdown -c
 sudo shutdown -h now
   `
+
+  ec2.runInstances({
+    LaunchTemplate: {
+      LaunchTemplateId: 'lt-0dc730121165d40ee'
+    },
+    // DryRun: true,
+    InstanceInitiatedShutdownBehavior: 'terminate',
+    MaxCount: 1,
+    MinCount: 1,
+    IamInstanceProfile: {
+      Name: 'amiWorkerProfile'
+    },
+    TagSpecifications: [
+      {
+        ResourceType: 'instance',
+        Tags: [
+          {
+            Key: 'seasketch-sls-geoprocessing-worker',
+            Value: 'worker'
+          },
+          {
+            Key: 'Name',
+            Value: `seasketch-sls-geoprocessing-${invocationId}`
+          }
+        ]
+      }
+    ],
+    UserData: Buffer.from(sh).toString('base64')
+  }, (e, data) => console.log(e, data));
 
   const ami = process.env.WORKER_AMI;
   const workerType = process.env.WORKER_TYPE;
