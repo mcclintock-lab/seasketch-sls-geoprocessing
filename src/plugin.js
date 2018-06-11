@@ -126,6 +126,21 @@ const addCommonResources = (serverless, options) => {
     Action: ["sqs:*"],
     Resource: { "Fn::ImportValue": "ReportsLogQueueArn" }
   });
+  provider.iamRoleStatements.push({
+    Effect: "Allow",
+    Action: ["ec2:RunInstances"],
+    "Resource": ["*"]
+  });
+  provider.iamRoleStatements.push({
+    Effect: "Allow",
+    Action: ["ec2:CreateTags"],
+    "Resource": ["*"]
+  });
+  provider.iamRoleStatements.push({
+    "Effect":"Allow",
+    "Action":"iam:PassRole",
+    "Resource": "*"
+  })
   // Log forwarding
   if (!serverless.service.custom) {
     serverless.service.custom = {};

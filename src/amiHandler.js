@@ -40,8 +40,11 @@ EOF
 aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
   `;
 
-  const sh = `
+  const sh = `#cloud-boothook
+#!/bin/bash
 sudo shutdown -h -P +${process.env.WORKER_TIMEOUT} &
+su ubuntu << 'EOCOMMANDS'
+cd /home/ubuntu/
 . ~/.nvm/nvm.sh
 npm install -g aws-sdk git+ssh://git@github.com:mcclintock-lab/seasketch-sls-geoprocessing.git
 export RESULTS_SQS_ENDPOINT="${process.env.RESULTS_SQS_ENDPOINT}"
@@ -51,6 +54,7 @@ export INVOCATION_ID="${invocationId}"
 cat >./tasks.sh <<'SSEOL'
 ${tasks}
 SSEOL
+chmod a+x ./tasks.sh
 run-ami-tasks ./tasks.sh
 if [ "$?" -eq "0" ]
 then
@@ -61,17 +65,17 @@ else
   {
     "message": "invocationId: $INVOCATION_ID run-ami-tasks failed"
   }
-  EOF
+EOF
   )
   aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url "${process.env.LOGS_SQS_ENDPOINT}"
 fi
 sudo shutdown -c
 sudo shutdown -h now
-  `
-
-  ec2.runInstances({
+EOCOMMANDS
+`;
+  const instanceDetails = await ec2.runInstances({
     LaunchTemplate: {
-      LaunchTemplateId: 'lt-0dc730121165d40ee'
+      LaunchTemplateId: process.env.WORKER_LAUNCH_TEMPLATE
     },
     // DryRun: true,
     InstanceInitiatedShutdownBehavior: 'terminate',
@@ -96,7 +100,7 @@ sudo shutdown -h now
       }
     ],
     UserData: Buffer.from(sh).toString('base64')
-  }, (e, data) => console.log(e, data));
+  }).promise();
 
   const launchTemplate = process.env.WORKER_LAUNCH_TEMPLATE;
   const workerType = process.env.WORKER_TYPE;
@@ -104,8 +108,8 @@ sudo shutdown -h now
     sh,
     worker: {
       launchTemplate,
-      workerId: '123',
-      workerType
+      instanceId: instanceDetails.Instances[0].InstanceId,
+      instanceType: instanceDetails.Instances[0].InstanceType
     }
   }
 };
