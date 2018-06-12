@@ -5,6 +5,7 @@ const { FAILURE } = require("../src/constants");
 // Set the region
 AWS.config.update({ region: process.env.AWS_DEFAULT_REGION });
 const sqs = new AWS.SQS({ apiVersion: "2012-11-05" });
+const uuid = require('uuid').v4;
 
 var messages = [];
 
@@ -36,6 +37,8 @@ const sendMessages = async () => {
 
 const message = (msg, type) => {
   return {
+    id: uuid(),
+    request_id: process.env.INVOCATION_ID,
     timestamp: new Date().getTime(),
     message: msg,
     type: type || "stdout"

@@ -95,6 +95,10 @@ EOCOMMANDS
           {
             Key: 'Name',
             Value: `seasketch-sls-geoprocessing-${invocationId}`
+          },
+          {
+            Key: 'InvocationID',
+            Value: invocationId
           }
         ]
       }

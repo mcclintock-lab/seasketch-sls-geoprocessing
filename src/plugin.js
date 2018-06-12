@@ -32,13 +32,20 @@ const putMetadataToSQS = async (serverless, options) => {
   var functions = [];
   for (var key in serverless.service.functions) {
     const func = serverless.service.functions[key];
+    let amiMetadata = {};
+    if (func.launchTemplate) {
+      amiMetadata.launchTemplate = func.launchTemplate;
+      amiMetadata.instanceType = func.instanceType;
+      amiMetadata.workerTimeout = func.workerTimeout;
+    }
     functions.push({
       name: key,
       functionName: func.name,
       description: func.description,
       timeout: func.timeout,
       memorySize: func.memorySize || serverless.provider.memorySize,
-      outputs: `https://s3-${serverless.service.provider.region}.amazonaws.com/${bucket}/${func.environment.S3_KEY_PREFIX}`
+      outputs: `https://s3-${serverless.service.provider.region}.amazonaws.com/${bucket}/${func.environment.S3_KEY_PREFIX}`,
+      ...amiMetadata
     })
   }
   const metadata = {
@@ -103,12 +110,14 @@ const addCommonResources = (serverless, options) => {
     functions[key].environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
 
     if (functions[key].launchTemplate) {
+      functions[key].instanceType = functions[key].instanceType || "m5.large";
+      functions[key].workerTimeout = functions[key].workerTimeout || 1; //minute
       functions[key].environment = {
         ...functions[key].environment,
         FUNCTION_ENV_VAR_KEYS: Object.keys(functions[key].environment).join(","),
         WORKER_SH: fs.readFileSync(process.cwd() + "/" + functions[key].worker).toString(),
         WORKER_LAUNCH_TEMPLATE: functions[key].launchTemplate,
-        WORKER_TIMEOUT: functions[key].workerTimeout || 10
+        WORKER_TIMEOUT: functions[key].workerTimeout
       }
     }
   }
