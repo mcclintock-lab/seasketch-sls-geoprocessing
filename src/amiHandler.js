@@ -40,8 +40,7 @@ EOF
 aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
   `;
 
-  const sh = `#cloud-boothook
-#!/bin/bash
+  const sh = `#!/bin/bash
 sudo shutdown -h -P +${process.env.WORKER_TIMEOUT} &
 su ubuntu << 'EOCOMMANDS'
 cd /home/ubuntu/
@@ -69,9 +68,9 @@ EOF
   )
   aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url "${process.env.LOGS_SQS_ENDPOINT}"
 fi
-sudo shutdown -c
-sudo shutdown -h now
 EOCOMMANDS
+shutdown -c
+shutdown -h now
 `;
   const instanceDetails = await ec2.runInstances({
     LaunchTemplate: {

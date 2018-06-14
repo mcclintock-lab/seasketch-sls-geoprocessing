@@ -31,7 +31,11 @@ module.exports = geoprocessor => {
       fs = event;
     }
     if (event.invocationId) {
-      console.log(`invocationId: ${event.invocationId}`)
+      if (process.env.WORKER_LAUNCH_TEMPLATE) {
+        console.log(`invocationId: ${event.invocationId} workerLaunchTemplate: ${console.log(`invocationId: ${event.invocationId}`)}`);
+      } else {
+        console.log(`invocationId: ${event.invocationId}`);
+      }
     }
     const response = await geoprocessor(fs, event.invocationId);
     const results = {
