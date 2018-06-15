@@ -117,7 +117,8 @@ const addCommonResources = (serverless, options) => {
         FUNCTION_ENV_VAR_KEYS: Object.keys(functions[key].environment).join(","),
         WORKER_SH: fs.readFileSync(process.cwd() + "/" + functions[key].worker).toString(),
         WORKER_LAUNCH_TEMPLATE: functions[key].launchTemplate,
-        WORKER_TIMEOUT: functions[key].workerTimeout
+        WORKER_TIMEOUT: functions[key].workerTimeout,
+        FUNCTION_ID: `${serverless.service.service}-${provider.stage}-${key}`
       }
     }
   }

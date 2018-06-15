@@ -98,6 +98,10 @@ shutdown -h now
           {
             Key: 'InvocationID',
             Value: invocationId
+          },
+          {
+            Key: 'function',
+            Value: process.env.FUNCTION_ID
           }
         ]
       }
