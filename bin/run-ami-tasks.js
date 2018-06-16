@@ -62,7 +62,7 @@ worker.stdout.on("data", data => {
 worker.stderr.on("data", (data, e) => {
   if (data.toString().indexOf("+") === 0) {
     messages.push(
-      message(data.toString().replace(/(^|\n)[\+]*\s/g, "$1"), "command")
+      message(data.toString(), "command")
     );
   } else {
     messages.push(message(data.toString(), "stderr"));
