@@ -3,7 +3,8 @@
   "version": "1.0.0",
   "description": "SeaSketch geoprocessing project template",
   "scripts": {
-    "test": "jest"
+    "test": "jest",
+    "compile-sources": "functions/*/data/src/compile"
   },
   "author": "Chad Burt <chad@underbluewaters.net>",
   "license": "MIT",
