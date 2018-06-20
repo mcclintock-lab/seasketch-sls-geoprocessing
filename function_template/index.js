@@ -9,14 +9,3 @@ const calculateArea = async (sketch) => {
 
 export default calculateArea;
 export const handler = asHandler(calculateArea);
-
-// More complex example:
-// import { handler, s3PUT } from "seasketch-sls-geoprocessing";
-//
-// export default handler(async (sketches) => {
-//   const base64MapData = "...";
-//   const mapURL = await s3PUT("map.png", base64MapData);
-//   return {
-//     map: mapURL
-//   }
-// });
