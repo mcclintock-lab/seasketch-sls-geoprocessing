@@ -4,6 +4,7 @@
   "description": "SeaSketch geoprocessing project template",
   "scripts": {
     "test": "jest",
+    "start": "webpack-dev-server --config ./webpack.config.js --mode development",
     "compile-sources": "functions/*/data/src/compile"
   },
   "author": "Chad Burt <chad@underbluewaters.net>",
