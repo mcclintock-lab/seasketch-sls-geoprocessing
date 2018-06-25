@@ -1,5 +1,5 @@
 import area from './index.js';
-import sketch from '../examples/sketch.json';
+import sketch from '../../examples/sketch.json';
 
 test('Accurately calculates the area of a sketch', async () => {
   const result = await area(sketch);
