@@ -80,3 +80,7 @@ custom:
     destinationARN:
       Fn::ImportValue: ReportLogsForwarder
 ```
+
+# Upgrade Procedures
+
+Each geoprocessing project has it's own dependencies defined in `package.json` and at times it may be necessary to upgrade them in order to be compatible with `seasketch-report-client` or `seasketch-sls-geoprocessing` itself. When that time comes, manually update `devDependencies` to match those in the latest template at [seasketch-sls-geoprocessing/template/package.json](https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/blob/master/template/package.json). You may also have to do the same for [webpack.config.js](https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/blob/master/template/webpack.config.js).
