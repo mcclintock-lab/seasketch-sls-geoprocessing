@@ -1,8 +1,6 @@
-import { ReportTabs } from "seasketch-report-client";
+import React from "react";
 import Example from "./tabs/Example";
 
-export const CollectionReports = () => {
-  <ReportTabs>
-    <Example title="Example" />
-  </ReportTabs>
-}
+export const ExampleReports = [
+  Example
+];

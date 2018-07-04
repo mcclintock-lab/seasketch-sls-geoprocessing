@@ -1,5 +1,4 @@
-# Rename me
-service: template
+service: $template
 
 plugins:
   - serverless-webpack

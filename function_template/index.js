@@ -7,5 +7,7 @@ const calculateArea = async (sketch) => {
   }
 }
 
+// function exported as default for testing and reuse
 export default calculateArea;
+// must be exported by keyword 'handler'
 export const handler = asHandler(calculateArea);

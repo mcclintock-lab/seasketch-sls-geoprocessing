@@ -11,7 +11,8 @@
   "license": "MIT",
   "dependencies": {
     "source-map-support": "^0.5.4",
-    "seasketch-sls-geoprocessing": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing"
+    "seasketch-sls-geoprocessing": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing",
+    "@turf/area": "^6.0.1"
   },
   "devDependencies": {
     "babel-core": "^6.26.0",

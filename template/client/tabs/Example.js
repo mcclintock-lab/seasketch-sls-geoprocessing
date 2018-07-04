@@ -1,10 +1,11 @@
 import React from "react";
 import {
-  withSources,
-  JSONCard
+  asReportTab,
+  JSONCard,
+  Card
 } from "seasketch-report-client";
 
-const ExampleTab = ({ results, sketch, sketchClass }) => (
+const ExampleTab = ({ results, sketch }) => (
   <React.Fragment>
     <JSONCard title="Attributes" json={sketch.properties} />
     {
@@ -15,8 +16,7 @@ const ExampleTab = ({ results, sketch, sketchClass }) => (
   </React.Fragment>
 );
 
-export default withSources([
-  // function name (e.g. MyProject-geoprocessing-area)
-  // you should usually name these explicitly, but can also use * for all
-  "*"
-])(ExampleTab);
+export default asReportTab({
+  sources: ["$template-geoprocessing-$functionName"],
+  title: "Zone Area"
+})(ExampleTab);
