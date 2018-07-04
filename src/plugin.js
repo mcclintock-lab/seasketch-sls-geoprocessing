@@ -2,6 +2,7 @@ const fs = require("fs");
 const { promisify } = require("util");
 const readFile = promisify(fs.readFile);
 const writeFile = promisify(fs.writeFile);
+const exists = promisify(fs.exists);
 const ncp = require("ncp").ncp;
 const AWS = require("aws-sdk");
 
@@ -78,8 +79,21 @@ const updateYML = async (serverless, options) => {
   }
   json.functions[options.name] = new YAWN(yml).json;
   yawn.json = json;
-  return await fs.writeFile("./serverless.yml", yawn.yaml);
+  return await writeFile("./serverless.yml", yawn.yaml);
 };
+
+const renameSources = async (serverless, options) => {
+  serverless.cli.log(`Updating sources in client/tabs/Example.js`);
+  const doesExist = await exists("./client/tabs/Example.js");
+  if (doesExist) {
+    var data = await readFile("./client/tabs/Example.js")
+    data = data.toString().replace("$project", serverless.service.service);
+    data = data.replace("$functionName", options.name);
+    return await writeFile("./client/tabs/Example.js", data);
+  } else {
+    serverless.cli.log(`Example tab no longer exists.`);
+  }
+}
 
 const addCommonResources = (serverless, options) => {
   var provider = serverless.service.provider;
@@ -175,7 +189,7 @@ class SeaSketchGeoprocessingPlugin {
     this.commands = {
       add_function: {
         usage: "Create a geoprocessing function",
-        lifecycleEvents: ["createDirs", "updateYML"],
+        lifecycleEvents: ["createDirs", "updateYML", "renameSources"],
         options: {
           name: {
             usage: "Name of the function",
@@ -189,6 +203,11 @@ class SeaSketchGeoprocessingPlugin {
     this.hooks = {
       "add_function:updateYML": updateYML.bind(this, serverless, options),
       "add_function:createDirs": createDirectories.bind(
+        this,
+        serverless,
+        options
+      ),
+      "add_function:renameSources": renameSources.bind(
         this,
         serverless,
         options

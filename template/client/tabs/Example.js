@@ -17,6 +17,6 @@ const ExampleTab = ({ results, sketch }) => (
 );
 
 export default asReportTab({
-  sources: ["$template-geoprocessing-$functionName"],
+  sources: ["$project-geoprocessing-$functionName"],
   title: "Zone Area"
 })(ExampleTab);
