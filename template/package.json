@@ -28,6 +28,6 @@
     "webpack": "^4.2.0",
     "webpack-node-externals": "^1.7.2",
     "serverless-log-forwarding": "^1.1.6",
-    "seasketch-report-client": "latest"
+    "seasketch-report-client": "https://github.com/mcclintock-lab/seasketch-report-client"
   }
 }
