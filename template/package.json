@@ -6,13 +6,15 @@
     "test": "jest",
     "start": "report-client-devserver --entry ./client/index.js --examples ./examples/ & sls offline start",
     "build": "report-client-build --entry ./client/index.js --examples ./examples/",
-    "compile-sources": "functions/*/data/src/compile"
+    "compile-sources": "functions/*/data/src/compile",
+    "deploy": "npx deploy-client"
   },
   "author": "Chad Burt <chad@underbluewaters.net>",
   "license": "MIT",
   "dependencies": {
     "source-map-support": "^0.5.4",
     "seasketch-sls-geoprocessing": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing",
+    "seasketch-report-client": "https://github.com/mcclintock-lab/seasketch-report-client",
     "@turf/area": "^6.0.1"
   },
   "devDependencies": {
@@ -27,7 +29,6 @@
     "serverless-webpack": "latest",
     "webpack": "^4.2.0",
     "webpack-node-externals": "^1.7.2",
-    "serverless-log-forwarding": "^1.1.6",
-    "seasketch-report-client": "https://github.com/mcclintock-lab/seasketch-report-client"
+    "serverless-log-forwarding": "^1.1.6"
   }
 }
