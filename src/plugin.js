@@ -5,6 +5,7 @@ const writeFile = promisify(fs.writeFile);
 const exists = promisify(fs.exists);
 const ncp = require("ncp").ncp;
 const AWS = require("aws-sdk");
+const remoteOriginUrl = require('remote-origin-url');
 
 const YAWN = require("yawn-yaml/cjs");
 const YML_TEMPLATE = `${__dirname}/../function_config.yml`;
@@ -54,6 +55,7 @@ const putMetadataToSQS = async (serverless, options) => {
     region: serverless.service.provider.region,
     ...serverless.service.custom.geoprocessing,
     functions: functions,
+    git: remoteOriginUrl.sync(`${process.cwd()}/.git/config`)
   };
   postDeployQueue = exports.Exports.find(
     e => e.Name === "PostDeployMetadataQueueEndpoint"

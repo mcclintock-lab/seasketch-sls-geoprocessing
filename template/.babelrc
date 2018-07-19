@@ -7,10 +7,11 @@
         "targets": {
           "node": "8.10"
         }
-      },
-      "react",
-      "stage-2"
-    ]
+      }
+    ],
+    "react",
+    "stage-2"
   ],
   "plugins": ["source-map-support"]
 }
+
