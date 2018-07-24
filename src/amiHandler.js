@@ -29,6 +29,16 @@ set +x
 # calculate duration
 end=$(date +%s)
 RUNTIME=$(((end-start)*1000))
+# send results
+export MESSAGE_BODY=$(cat <<EOF
+{
+  "results": $RESULTS,
+  "duration": $RUNTIME,
+  "invocationId": "$INVOCATION_ID"
+}
+EOF
+)
+aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
 # signal logs complete
 export LOG_MESSAGE_BODY=$(cat <<EOF
 {
@@ -43,16 +53,6 @@ export LOG_MESSAGE_BODY=$(cat <<EOF
 }
 EOF
 aws.sqs send-message --message-body "$LOG_MESSAGE_BODY" --queue-url ${process.env.LOGS_SQS_ENDPOINT}
-# send results
-export MESSAGE_BODY=$(cat <<EOF
-{
-  "results": $RESULTS,
-  "duration": $RUNTIME,
-  "invocationId": "$INVOCATION_ID"
-}
-EOF
-)
-aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
   `;
 
   const sh = `#!/bin/bash
