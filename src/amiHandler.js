@@ -1,5 +1,6 @@
 const AWS = require("aws-sdk");
 const ec2 = new AWS.EC2({apiVersion: '2016-11-15', region: 'us-west-2'});
+const uuid = require('uuid').v4;
 AWS.config.update({ region: 'us-west-2' });
 
 module.exports = async (geojson, invocationId) => {
@@ -28,6 +29,20 @@ set +x
 # calculate duration
 end=$(date +%s)
 RUNTIME=$(((end-start)*1000))
+# signal logs complete
+export LOG_MESSAGE_BODY=$(cat <<EOF
+{
+  "amiHandler": "${invocationId}",
+  "messages": [{
+    "id": "${uuid()}",
+    "request_id": "${invocationId}",
+    "timestamp": "${new Date().getTime()}",
+    "message": "SLS_LOGS_COMPLETE",
+    "type": "info"
+  }]
+}
+EOF
+aws.sqs send-message --message-body "$LOG_MESSAGE_BODY" --queue-url ${process.env.LOGS_SQS_ENDPOINT}
 # send results
 export MESSAGE_BODY=$(cat <<EOF
 {
