@@ -13,7 +13,6 @@ const sendMessages = async () => {
   const incoming = messages;
   messages = [];
   if (incoming.length) {
-    console.log(`sending ${incoming.length} messages`);
     const body = {
       amiHandler: process.env.INVOCATION_ID,
       messages: incoming
@@ -27,7 +26,6 @@ const sendMessages = async () => {
         })
         .promise();
     } catch (e) {
-      console.error("Failed to send messages to sqs");
       messages = [...incoming, ...messages];
     }
   } else {
