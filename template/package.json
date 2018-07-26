@@ -7,7 +7,7 @@
     "start": "report-client-devserver --entry ./client/index.js --examples ./examples/ & sls offline start",
     "build": "report-client-build --entry ./client/index.js --examples ./examples/",
     "compile-sources": "functions/*/data/src/compile",
-    "deploy": "sls deply & npx deploy-client",
+    "deploy": "sls deploy & npx deploy-client",
     "deploy-client": "npx deploy-client",
     "deploy-function": "sls deploy"
   },
