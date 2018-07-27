@@ -109,6 +109,9 @@ const addCommonResources = (serverless, options) => {
   provider.environment["LOGS_SQS_ENDPOINT"] = {
     "Fn::ImportValue": "LogsQueueEndpoint"
   };
+  provider.environment["EC2_LOGS_SQS_ENDPOINT"] = {
+    "Fn::ImportValue": "EC2LogsQueueEndpoint"
+  };
   provider.environment["S3_BUCKET"] = {
     "Fn::ImportValue": "ReportOutputs"
   };

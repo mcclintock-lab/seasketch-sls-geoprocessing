@@ -105,6 +105,15 @@ resources:
         QueueName: ReportsLogQueue
         ReceiveMessageWaitTimeSeconds: 20
         VisibilityTimeout: 30 # seconds
+    EC2LogQueue:
+      Type: "AWS::SQS::Queue"
+      Properties:
+        DelaySeconds: 0
+        MaximumMessageSize: 262144 # 256kb
+        MessageRetentionPeriod: 86400 # 1 day in seconds
+        QueueName: EC2ReportsLogQueue
+        ReceiveMessageWaitTimeSeconds: 20
+        VisibilityTimeout: 30 # seconds
     ResultsQueue:
       Type: "AWS::SQS::Queue"
       Properties:
@@ -164,6 +173,12 @@ resources:
                       - ResultsQueue
                       - Arn
                 - Effect: "Allow"
+                  Action: "sqs:*"
+                  Resource:
+                    Fn::GetAtt:
+                      - EC2LogQueue
+                      - Arn
+                - Effect: "Allow"
                   Action:
                     - "s3:GetObject"
                     - "s3:PutObject"
@@ -210,6 +225,14 @@ resources:
           - Arn
       Export:
         Name: ReportsLogQueueArn
+    EC2LogQueueArn:
+      Description: sqs queue arn for ec2 logs
+      Value:
+        Fn::GetAtt:
+          - EC2LogQueue
+          - Arn
+      Export:
+        Name: EC2ReportsLogQueueArn
     ResultsQueueArn:
       Description: sqs queue arn for report results
       Value:
@@ -230,6 +253,12 @@ resources:
         Ref: LogQueue
       Export:
         Name: LogsQueueEndpoint
+    EC2LogsQueueEndpoint:
+      Description: sqs queue endpoint for ec2 logs
+      Value:
+        Ref: EC2LogQueue
+      Export:
+        Name: EC2LogsQueueEndpoint
     PostDeployMetadataQueueEndpoint:
       Description: sqs queue endpoint metadata about lambdas
       Value:

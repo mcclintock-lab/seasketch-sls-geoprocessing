@@ -16,7 +16,7 @@ export S3_PATH="${process.env.S3_BUCKET}/${process.env.S3_KEY_PREFIX}${invocatio
 ${process.env.FUNCTION_ENV_VAR_KEYS.split(',').map((k) => `export ${k}="${process.env[k]}"`).join("\n")}
 export WORKER_TIMEOUT=${process.env.WORKER_TIMEOUT}
 export RESULTS_SQS_ENDPOINT="${process.env.RESULTS_SQS_ENDPOINT}"
-export LOGS_SQS_ENDPOINT="${process.env.LOGS_SQS_ENDPOINT}"
+export LOGS_SQS_ENDPOINT="${process.env.EC2_LOGS_SQS_ENDPOINT}"
 # set geojson env var
 export GEOJSON=$(cat <<EOF
 ${JSON.stringify(geojson)}
@@ -52,7 +52,7 @@ export LOG_MESSAGE_BODY=$(cat <<EOF
   }]
 }
 EOF
-aws.sqs send-message --message-body "$LOG_MESSAGE_BODY" --queue-url ${process.env.LOGS_SQS_ENDPOINT}
+aws.sqs send-message --message-body "$LOG_MESSAGE_BODY" --queue-url ${process.env.EC2_LOGS_SQS_ENDPOINT}
   `;
 
   const sh = `#!/bin/bash
@@ -62,7 +62,7 @@ cd /home/ubuntu/
 . ~/.nvm/nvm.sh
 npm install -g aws-sdk git+ssh://git@github.com:mcclintock-lab/seasketch-sls-geoprocessing.git
 export RESULTS_SQS_ENDPOINT="${process.env.RESULTS_SQS_ENDPOINT}"
-export LOGS_SQS_ENDPOINT="${process.env.LOGS_SQS_ENDPOINT}"
+export LOGS_SQS_ENDPOINT="${process.env.EC2_LOGS_SQS_ENDPOINT}"
 export AWS_DEFAULT_REGION="${process.env.S3_REGION}"
 export INVOCATION_ID="${invocationId}"
 cat >./tasks.sh <<'SSEOL'
@@ -81,7 +81,7 @@ else
   }
 EOF
   )
-  aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url "${process.env.LOGS_SQS_ENDPOINT}"
+  aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url "${process.env.EC2_LOGS_SQS_ENDPOINT}"
 fi
 EOCOMMANDS
 shutdown -c
