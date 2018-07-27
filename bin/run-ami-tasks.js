@@ -21,7 +21,7 @@ const sendMessages = async () => {
       await sqs
         .sendMessage({
           MessageBody: JSON.stringify(body),
-          QueueUrl: process.env.EC2_LOGS_SQS_ENDPOINT,
+          QueueUrl: process.env.LOGS_SQS_ENDPOINT,
           DelaySeconds: 0
         })
         .promise();
