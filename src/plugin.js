@@ -158,7 +158,7 @@ const addCommonResources = (serverless, options) => {
   provider.iamRoleStatements.push({
     Effect: "Allow",
     Action: ["sqs:*"],
-    Resource: { "Fn::ImportValue": "EC2LogQueueArn" }
+    Resource: { "Fn::ImportValue": "EC2ReportsLogQueueArn" }
   });
   provider.iamRoleStatements.push({
     Effect: "Allow",
