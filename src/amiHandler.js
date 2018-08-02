@@ -22,6 +22,8 @@ export GEOJSON=$(cat <<EOF
 ${JSON.stringify(geojson)}
 EOF
 )
+echo $GEOJSON > sketch.json
+export GEOJSON_FILE="$(cd "$(dirname "sketch.json")" && pwd)/$(basename "sketch.json")"
 # do worker script
 set -x
 ${process.env.WORKER_SH}
