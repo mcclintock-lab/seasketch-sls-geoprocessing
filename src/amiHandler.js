@@ -54,6 +54,7 @@ export LOG_MESSAGE_BODY=$(cat <<EOF
   }]
 }
 EOF
+)
 aws.sqs send-message --message-body "$LOG_MESSAGE_BODY" --queue-url ${process.env.EC2_LOGS_SQS_ENDPOINT}
   `;
 
