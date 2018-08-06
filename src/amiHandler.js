@@ -28,34 +28,6 @@ export GEOJSON_FILE="$(cd "$(dirname "sketch.json")" && pwd)/$(basename "sketch.
 set -x
 ${process.env.WORKER_SH}
 set +x
-# calculate duration
-end=$(date +%s)
-RUNTIME=$(((end-start)*1000))
-# send results
-export MESSAGE_BODY=$(cat <<EOF
-{
-  "results": $RESULTS,
-  "duration": $RUNTIME,
-  "invocationId": "$INVOCATION_ID"
-}
-EOF
-)
-aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
-# signal logs complete
-export LOG_MESSAGE_BODY=$(cat <<EOF
-{
-  "amiHandler": "${invocationId}",
-  "messages": [{
-    "id": "${uuid()}",
-    "request_id": "${invocationId}",
-    "timestamp": "${new Date().getTime()}",
-    "message": "SLS_LOGS_COMPLETE",
-    "type": "info"
-  }]
-}
-EOF
-)
-aws sqs send-message --message-body "$LOG_MESSAGE_BODY" --queue-url ${process.env.EC2_LOGS_SQS_ENDPOINT}
   `;
 
   const sh = `#!/bin/bash
@@ -76,6 +48,34 @@ run-ami-tasks ./tasks.sh
 if [ "$?" -eq "0" ]
 then
   echo "Okay"
+  # calculate duration
+  end=$(date +%s)
+  RUNTIME=$(((end-start)*1000))
+  # send results
+  export MESSAGE_BODY=$(cat <<EOF
+  {
+    "results": $RESULTS,
+    "duration": $RUNTIME,
+    "invocationId": "$INVOCATION_ID"
+  }
+  EOF
+  )
+  aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
+  # signal logs complete
+  export LOG_MESSAGE_BODY=$(cat <<EOF
+  {
+    "amiHandler": "${invocationId}",
+    "messages": [{
+      "id": "${uuid()}",
+      "request_id": "${invocationId}",
+      "timestamp": "date +%s",
+      "message": "SLS_LOGS_COMPLETE",
+      "type": "info"
+    }]
+  }
+  EOF
+  )
+  aws sqs send-message --message-body "$LOG_MESSAGE_BODY" --queue-url ${process.env.EC2_LOGS_SQS_ENDPOINT}    
 else
   echo "run-ami-tasks failed. ensure seasketch-sls-api-server is notified"
   export MESSAGE_BODY=$(cat <<EOF
