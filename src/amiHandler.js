@@ -42,7 +42,7 @@ EOF
 )
 aws sqs send-message --message-body "$MESSAGE_BODY" --queue-url ${process.env.RESULTS_SQS_ENDPOINT}
 # signal logs complete
-TIMESTAMP=$(date +%s)
+TIMESTAMP=$(node -e 'console.log(Date.now())')
 export LOG_MESSAGE_BODY=$(cat <<EOF
 {
   "amiHandler": "${invocationId}",
