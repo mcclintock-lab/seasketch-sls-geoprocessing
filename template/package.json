@@ -15,8 +15,9 @@
   "license": "MIT",
   "dependencies": {
     "source-map-support": "^0.5.4",
-    "@seasketch-sls-geoprocessing/core": "latest",
-    "seasketch-report-client": "https://github.com/mcclintock-lab/seasketch-report-client",
+    "@seasketch-sls-geoprocessing/handlers": "latest",
+    "@seasketch-sls-geoprocessing/plugin": "latest",
+    "@seasketch-sls-geoprocessing/client": "latest",
     "@turf/area": "^6.0.1"
   },
   "devDependencies": {

@@ -1,0 +1,29 @@
+{
+  "name": "@seasketch-sls-geoprocessing/handlers",
+  "version": "1.0.0",
+  "description": "Lambda function wrappers for serverless geoprocessing functions",
+  "main": "index.js",
+  "bin": {
+    "handlers": "run-ami-tasks.js"
+  },
+  "scripts": {
+    "test": "jest"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
+  },
+  "author": "Chad Burt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/issues"
+  },
+  "homepage": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
+  "devDependencies": {
+    "jest": "^23.5.0"
+  },
+  "dependencies": {
+    "aws-sdk": "^2.300.0",
+    "uuid": "^3.3.2"
+  }
+}

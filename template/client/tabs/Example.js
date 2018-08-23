@@ -3,7 +3,7 @@ import {
   asReportTab,
   JSONCard,
   Card
-} from "seasketch-report-client";
+} from "@seasketch-sls-geoprocessing/client";
 
 const ExampleTab = ({ results, sketch }) => (
   <React.Fragment>
