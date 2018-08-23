@@ -1,0 +1,35 @@
+{
+  "name": "@seasketch-sls-geoprocessing/studio",
+  "version": "1.0.0",
+  "description": "Local development environment for SeaSketch reports",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
+  },
+  "author": "Chad Burt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/issues"
+  },
+  "homepage": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
+  "dependencies": {
+    "@mapbox/mapbox-gl-redux": "^0.1.0",
+    "@material-ui/core": "^1.5.1",
+    "@material-ui/icons": "^2.0.3",
+    "@turf/centroid": "^6.0.2",
+    "mapbox-gl": "^0.48.0",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-hot-loader": "^4.3.5",
+    "react-redux": "^5.0.7",
+    "react-router": "^4.3.1",
+    "react-router-dom": "^4.3.1",
+    "redux-persist": "^5.10.0",
+    "redux-persist-transform-filter": "0.0.18",
+    "redux-thunk": "^2.3.0"
+  }
+}
