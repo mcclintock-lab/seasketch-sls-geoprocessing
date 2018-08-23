@@ -1,0 +1,28 @@
+{
+  "name": "@seasketch-sls-geoprocessing/client",
+  "version": "1.0.0",
+  "description": "Client react & redux modules for SeaSketch reports",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
+  },
+  "author": "Chad Burt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/issues"
+  },
+  "homepage": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
+  "dependencies": {
+    "humanize-duration": "^3.15.1",
+    "react-json-tree": "^0.11.0"
+  },
+  "devDependencies": {
+    "@material-ui/core": "^1.5.1",
+    "prop-types": "^15.6.2",
+    "react": "^16.4.2"
+  }
+}
