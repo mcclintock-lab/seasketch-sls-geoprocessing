@@ -27,11 +27,6 @@ provider:
             - "/*"
 
 
-custom:
-  webpack:
-    webpackConfig: ./webpack.config.js
-    includeModules: true
-
 package:
   individually: true
 

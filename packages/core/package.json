@@ -1,10 +1,11 @@
 {
-  "name": "seasketch-sls-geoprocessing",
-  "version": "0.1.12",
+  "name": "@seasketch-sls-geoprocessing/core",
+  "version": "1.0.0",
   "description": "Serverless geoprocessing platform for SeaSketch",
   "main": "index.js",
-  "scripts": {
-    "deploy": "sls deploy"
+  "scripts": {},
+  "bin": {
+    "run-ami-tasks": "./bin/run-ami-tasks.js"
   },
   "repository": {
     "type": "git",
@@ -22,9 +23,11 @@
   },
   "homepage": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
   "dependencies": {
-    "serverless": "^1.30.1"
-  },
-  "devDependencies": {
-    "lerna": "^3.1.4"
+    "aws-sdk": "^2.300.0",
+    "ncp": "^2.0.0",
+    "remote-origin-url": "^1.0.0",
+    "uuid": "^3.2.1",
+    "uuid-validate": "0.0.2",
+    "yawn-yaml": "^1.3.4"
   }
 }
