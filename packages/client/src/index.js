@@ -1,3 +1,4 @@
+import React from "react";
 import slug from "slugify";
 import Card from "./components/Card";
 import JSONCard from "./components/JSONCard";

@@ -4,7 +4,7 @@
   "description": "SeaSketch geoprocessing project template",
   "scripts": {
     "test": "jest",
-    "start": "report-client-devserver --entry ./client/index.js --examples ./examples/ & sls offline start",
+    "start": "devserver & sls offline start",
     "build": "report-client-build --entry ./client/index.js --examples ./examples/",
     "compile-sources": "functions/*/data/src/compile",
     "deploy": "sls deploy & npx deploy-client",
@@ -13,13 +13,14 @@
     "build2": "babel ./client/index.js"
   },
   "author": "Chad Burt <chad@underbluewaters.net>",
-  "license": "UNLICENSED",
+  "license": "MIT",
   "private": true,
   "dependencies": {
     "@seasketch-sls-geoprocessing/client": "^1.0.0",
     "@seasketch-sls-geoprocessing/handlers": "^1.0.0",
     "@seasketch-sls-geoprocessing/packaging": "^1.0.0",
     "@seasketch-sls-geoprocessing/plugin": "^1.0.0",
+    "@seasketch-sls-geoprocessing/studio": "^1.0.0",
     "@turf/area": "^6.0.1",
     "babel-jest": "^23.4.2"
   },
@@ -37,7 +38,9 @@
     "serverless-offline": "^3.20.1",
     "serverless-webpack": "latest",
     "webpack": "^4.17.1",
-    "webpack-node-externals": "^1.7.2"
+    "webpack-node-externals": "^1.7.2",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-rc.2",
+    "babel-loader": "^7.1.5"
   },
   "jest": {
     "testEnvironment": "node",
