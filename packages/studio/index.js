@@ -1,6 +1,5 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
-import Button from '@material-ui/core/Button';
 import App from './components/app.js';
 import {store, persistor} from './store'
 import { Provider } from 'react-redux'

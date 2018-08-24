@@ -1,34 +1,13 @@
 const webpack = require('webpack');
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const { babel } = require("@seasketch-sls-geoprocessing/packaging");
-// const fs = require('fs');
-// const path = require('path');
-// const yaml = require('js-yaml');
-// const ymlpath = path.join(process.cwd(), '/serverless.yml');
-// var sls = yaml.safeLoad(fs.readFileSync(ymlpath, 'utf8'));
+const path = require('path');
 
-// let modulesPath = `${__dirname}/../../`;
-// if (!fs.existsSync(`${modulesPath}babel-preset-env`)) {
-//   console.log("babel-preset-env not found. working from linked seasketch-report-client?");
-//   modulesPath = `${__dirname}/../node_modules/`;
-// }
+// console.log(path.resolve(require.resolve("react-hot-loader"), 'babel'));
+// babel.plugins.push(path.resolve(require.resolve("react-hot-loader").replace("/index.js", ""), 'babel'));
+babel.plugins = ["react-hot-loader/babel", ...babel.plugins];
 
-
-const mod = (env) => {
-  return {
-    rules: [
-      {
-        test: /\.js$/,
-        exclude: /node_modules/,
-        use: {
-          loader: `${__dirname}/node_modules/babel-loader`,
-          options: babel
-        }
-      }
-    ]
-  }
-}
-
+// console.log('babel', JSON.stringify(babel));
 module.exports = (entry, examples) => {
 
   const htmlPlugin = new HtmlWebPackPlugin({
@@ -39,19 +18,33 @@ module.exports = (entry, examples) => {
   const definePlugin = new webpack.DefinePlugin({
     process: {
       env: {
+        // expose example and client lists as env vars for studio to use at runtime
         EXAMPLES: `"${examples}"`,
         CLIENTS: `"${entry}"`
       }
     }
   });
 
-  return [
-    // local studio environment
-    {
+  return {
       mode: "development",
-      devtool: "eval-source-map",
+      devtool: "eval",
+      devServer: {
+        hot: true,
+        inline: true
+      },
       resolve: {
-        modules: ['node_modules', `${__dirname}/node_modules`]
+        modules: [
+          // resolve report implementation modules
+          'node_modules', 
+          // resolve studio modules
+          `${__dirname}/node_modules`
+        ],
+        alias: {
+          react: path.resolve(path.join(__dirname, './node_modules/react')),
+          'babel-core': path.resolve(
+            path.join(__dirname, './node_modules/@babel/core'),
+          )
+        },
       },
       output: {
         filename: "studio.js",
@@ -62,13 +55,25 @@ module.exports = (entry, examples) => {
         'webpack/hot/dev-server',
         `${__dirname}/../studio/index.js`
       ],
-      module: mod('development'),
+      module: {
+        rules: [
+          {
+            test: /\.js$/,
+            exclude: /node_modules/,
+            use: {
+              loader: `babel-loader`,
+              options: babel
+            }
+          }
+        ]
+      },
       plugins: [
         htmlPlugin,
         definePlugin,
         new webpack.HotModuleReplacementPlugin()
       ]
-    }
+    };
+  }
     // {
     //   mode: "production",
     //   // devtool: "eval-source-map",
@@ -91,5 +96,5 @@ module.exports = (entry, examples) => {
     //     'seasketch-report-client': 'SeaSketchReportClient'
     //   }
     // }
-  ];
-}
+//   ];
+// }
