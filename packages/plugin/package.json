@@ -4,9 +4,6 @@
   "description": "Serverless geoprocessing platform for SeaSketch",
   "main": "index.js",
   "scripts": {},
-  "bin": {
-    "run-ami-tasks": "./bin/run-ami-tasks.js"
-  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
@@ -32,5 +29,8 @@
   },
   "peerDependencies": {
     "serverless-log-forwarding": "^1.1.6"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

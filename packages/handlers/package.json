@@ -4,7 +4,7 @@
   "description": "Lambda function wrappers for serverless geoprocessing functions",
   "main": "index.js",
   "bin": {
-    "handlers": "run-ami-tasks.js"
+    "run-ami-tasks": "./bin/run-ami-tasks.js"
   },
   "scripts": {},
   "repository": {
@@ -23,5 +23,8 @@
   "dependencies": {
     "aws-sdk": "^2.300.0",
     "uuid": "^3.3.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

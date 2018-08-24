@@ -27,5 +27,8 @@
     "@babel/polyfill": "^7.0.0-rc.2",
     "@babel/preset-env": "^7.0.0-rc.2",
     "@babel/preset-react": "^7.0.0-rc.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

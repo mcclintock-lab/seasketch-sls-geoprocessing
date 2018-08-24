@@ -45,5 +45,8 @@
     "redux-thunk": "^2.3.0",
     "webpack": "^4.17.1",
     "webpack-dev-server": "^3.1.5"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }

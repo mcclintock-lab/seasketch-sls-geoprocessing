@@ -38,5 +38,8 @@
     "@material-ui/core": "^1.5.1",
     "prop-types": "^15.6.2",
     "react": "^16.4.2"
+  },
+  "publishConfig": {
+    "access": "public"
   }
 }
