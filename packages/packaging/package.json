@@ -3,8 +3,7 @@
   "version": "1.0.0",
   "description": "Contains common depenedencies and build scripts for geoprocessing projects, studio, and api-server",
   "main": "index.js",
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
@@ -24,9 +23,9 @@
   },
   "peerDependencies": {
     "@babel/core": "^7.0.0-rc.2",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-rc.2",
     "@babel/polyfill": "^7.0.0-rc.2",
     "@babel/preset-env": "^7.0.0-rc.2",
-    "@babel/preset-react": "^7.0.0-rc.2",
-    "@babel/plugin-proposal-class-properties": "^7.0.0-rc.2"
+    "@babel/preset-react": "^7.0.0-rc.2"
   }
 }

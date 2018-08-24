@@ -6,8 +6,7 @@
   "bin": {
     "handlers": "run-ami-tasks.js"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
