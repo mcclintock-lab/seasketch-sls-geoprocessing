@@ -5,6 +5,7 @@
   "main": "lib/index.js",
   "scripts": {
     "lib": "babel src -d lib --copy-files",
+    "lib:watch": "babel src -w -d lib --copy-files",
     "prepublish": "npm run lib"
   },
   "repository": {
