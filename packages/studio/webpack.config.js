@@ -3,11 +3,10 @@ const HtmlWebPackPlugin = require("html-webpack-plugin");
 const { babel } = require("@seasketch-sls-geoprocessing/packaging");
 const path = require('path');
 
-// console.log(path.resolve(require.resolve("react-hot-loader"), 'babel'));
-// babel.plugins.push(path.resolve(require.resolve("react-hot-loader").replace("/index.js", ""), 'babel'));
-babel.plugins = ["react-hot-loader/babel", ...babel.plugins];
+babel.plugins.push(
+  path.resolve(require.resolve("react-hot-loader").replace("/index.js", ""), 'babel')
+);
 
-// console.log('babel', JSON.stringify(babel));
 module.exports = (entry, examples) => {
 
   const htmlPlugin = new HtmlWebPackPlugin({
