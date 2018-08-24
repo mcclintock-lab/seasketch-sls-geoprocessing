@@ -32,9 +32,7 @@
     "@babel/preset-env": "^7.0.0-rc.2",
     "@babel/preset-react": "^7.0.0-rc.2",
     "@material-ui/core": "^1.5.1",
-    "@seasketch-sls-geoprocessing/packaging": "^1.0.0",
-    "prop-types": "^15.6.2",
-    "react": "^16.4.2"
+    "@seasketch-sls-geoprocessing/packaging": "^1.0.0"
   },
   "peerDependencies": {
     "@material-ui/core": "^1.5.1",
