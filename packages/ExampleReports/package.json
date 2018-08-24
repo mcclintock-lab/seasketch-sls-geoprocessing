@@ -1,5 +1,5 @@
 {
-  "name": "template",
+  "name": "ExampleReports",
   "version": "1.0.0",
   "description": "SeaSketch geoprocessing project template",
   "scripts": {
@@ -9,29 +9,40 @@
     "compile-sources": "functions/*/data/src/compile",
     "deploy": "sls deploy & npx deploy-client",
     "deploy-client": "npx deploy-client",
-    "deploy-function": "sls deploy"
+    "deploy-function": "sls deploy",
+    "build2": "babel ./client/index.js"
   },
   "author": "Chad Burt <chad@underbluewaters.net>",
-  "license": "MIT",
+  "license": "UNLICENSED",
+  "private": true,
   "dependencies": {
-    "source-map-support": "^0.5.4",
-    "@seasketch-sls-geoprocessing/handlers": "^1.0.0",
-    "@seasketch-sls-geoprocessing/plugin": "^1.0.0",
     "@seasketch-sls-geoprocessing/client": "^1.0.0",
-    "@turf/area": "^6.0.1"
+    "@seasketch-sls-geoprocessing/handlers": "^1.0.0",
+    "@seasketch-sls-geoprocessing/packaging": "^1.0.0",
+    "@seasketch-sls-geoprocessing/plugin": "^1.0.0",
+    "@turf/area": "^6.0.1",
+    "babel-jest": "^23.4.2"
   },
   "devDependencies": {
-    "babel-core": "^6.26.0",
-    "babel-jest": "^22.4.3",
-    "babel-loader": "^7.1.3",
+    "@babel/cli": "^7.0.0-rc.2",
+    "@babel/core": "^7.0.0-rc.2",
+    "@babel/polyfill": "^7.0.0-rc.2",
+    "@babel/preset-env": "^7.0.0-rc.2",
+    "@babel/preset-react": "^7.0.0-rc.2",
+    "babel-core": "^7.0.0-bridge.0",
     "babel-plugin-source-map-support": "^2.0.1",
-    "babel-preset-env": "^1.6.0",
     "jest": "^22.4.3",
     "serverless": "^1.26.1",
+    "serverless-log-forwarding": "^1.1.6",
     "serverless-offline": "^3.20.1",
     "serverless-webpack": "latest",
-    "webpack": "^4.2.0",
-    "webpack-node-externals": "^1.7.2",
-    "serverless-log-forwarding": "^1.1.6"
+    "webpack": "^4.17.1",
+    "webpack-node-externals": "^1.7.2"
+  },
+  "jest": {
+    "testEnvironment": "node",
+    "transform": {
+      ".js": "babel-jest"
+    }
   }
 }

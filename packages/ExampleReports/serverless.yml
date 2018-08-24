@@ -1,4 +1,4 @@
-service: $template
+service: ExampleReports
 
 plugins:
   - serverless-webpack
@@ -22,3 +22,13 @@ provider:
 
 package:
   individually: true
+functions:
+  area:
+    handler: functions/area/index.handler
+    description: Add your description of area here
+    timeout: 4
+    memorySize: 128
+    events:
+      - http:
+          method: post
+          path: area

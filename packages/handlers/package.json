@@ -7,7 +7,6 @@
     "handlers": "run-ami-tasks.js"
   },
   "scripts": {
-    "test": "jest"
   },
   "repository": {
     "type": "git",

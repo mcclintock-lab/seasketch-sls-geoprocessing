@@ -1,16 +1,16 @@
 import slug from "slugify";
-import Card from "./src/components/Card";
-import JSONCard from "./src/components/JSONCard";
-import ReportTabs from "./src/components/ReportTabs";
-import ReportSidebar from "./src/components/ReportSidebar";
-import ReportClientLoader from "./src/loader";
-import ExampleSelect from "./studio/components/ExampleSelect";
-import FileDownloadCard from "./src/components/FileDownloadCard";
-import HumanizedDuration from "./src/components/HumanizedDuration";
+import Card from "./components/Card";
+import JSONCard from "./components/JSONCard";
+import ReportTabs from "./components/ReportTabs";
+import ReportSidebar from "./components/ReportSidebar";
+import ReportClientLoader from "./loader";
+import ExampleSelect from "./components/ExampleSelect";
+import FileDownloadCard from "./components/FileDownloadCard";
+import HumanizedDuration from "./components/HumanizedDuration";
 
-import clientsReducer from "./src/redux/reducers/clients";
-import resultsReducer from "./src/redux/reducers/results";
-import {fromJSON as invocationFromJSON} from "./src/redux/utils";
+import clientsReducer from "./redux/reducers/clients";
+import resultsReducer from "./redux/reducers/results";
+import {fromJSON as invocationFromJSON} from "./redux/utils";
 import {
   fetchClients,
   fetchResults,
@@ -20,7 +20,7 @@ import {
   REPORTING_LOG_EVENT,
   REPORTING_STATUS_UPDATE,
   openEventSource,
-} from "./src/redux/actions";
+} from "./redux/actions";
 
 const requiredProps = ["sources", "title"];
 
