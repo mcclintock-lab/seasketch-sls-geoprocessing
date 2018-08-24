@@ -39,7 +39,7 @@
     "serverless-log-forwarding": "^1.1.6",
     "serverless-offline": "^3.20.1",
     "serverless-webpack": "latest"
-  }
+  },
   "jest": {
     "testEnvironment": "node",
     "transform": {
