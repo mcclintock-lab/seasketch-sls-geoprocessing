@@ -3,3 +3,4 @@ package-lock.json
 .serverless/
 lerna-debug.log
 .vscode
+.DS_Store

@@ -5,7 +5,7 @@ module.exports = {
     ["@babel/preset-env", {
       useBuiltIns: "usage",
       targets: {
-        browsers: "last 2 versions, ie 11"
+        browsers: "last 2 Chrome versions, ie 11"
       }
     }]
   ]
