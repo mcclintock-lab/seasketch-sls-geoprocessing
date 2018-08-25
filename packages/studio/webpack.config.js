@@ -92,7 +92,7 @@ module.exports = (entry, examples) => {
     //   externals: {
     //     'react': 'React',
     //     'react-dom': 'ReactDOM',
-    //     'seasketch-report-client': 'SeaSketchReportClient'
+    //     '@seasketch-sls-geoprocessing/client': 'SeaSketchReportClient'
     //   }
     // }
 //   ];

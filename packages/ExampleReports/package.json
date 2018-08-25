@@ -6,11 +6,9 @@
     "test": "jest",
     "start": "devserver & sls offline start",
     "build": "NODE_PATH=./node_modules build-report",
-    "compile-sources": "functions/*/data/src/compile",
-    "deploy": "sls deploy & npx deploy-client",
-    "deploy-client": "deploy-report",
-    "deploy-function": "sls deploy",
-    "build2": "babel ./client/index.js"
+    "deploy": "npm run deploy-function && npm run deploy-client",
+    "deploy-client": "npm run build && deploy-report",
+    "deploy-function": "sls deploy"
   },
   "author": "Chad Burt <chad@underbluewaters.net>",
   "license": "MIT",

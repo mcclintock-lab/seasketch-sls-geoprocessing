@@ -42,7 +42,7 @@ const main = async () => {
       DelaySeconds: 0
     })
     .promise();
-
+  console.log("Success");
 }
 
 main();
