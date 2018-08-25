@@ -1,0 +1,34 @@
+#!/usr/bin/env node
+const path = require('path');
+const webpack = require('webpack');
+const WebpackDevServer = require('webpack-dev-server');
+const PORT = 3009;
+
+const entry = path.resolve(process.cwd(), "client/index.js");
+const examples = path.resolve(process.cwd(), "examples/");
+const config = require("../webpack.config.js")(entry, examples);
+
+const compiler = webpack(config);
+const server = new WebpackDevServer(compiler, {
+  hot: true,
+  inline: true,
+  stats: { colors: true },
+  open: true,
+  overlay: true,
+  port: 3009,
+  host: "localhost",
+  historyApiFallback: true,
+  proxy: {
+    '/tasks': {
+      target: 'http://localhost:3000',
+      pathRewrite: {'^/tasks' : ''}
+    }
+  }
+});
+
+server.listen(PORT, 'localhost', function (err) {
+  if (err) {
+    console.log(err);
+  }
+  console.log('WebpackDevServer listening at localhost:', PORT);
+});

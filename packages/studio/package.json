@@ -1,0 +1,52 @@
+{
+  "name": "@seasketch-sls-geoprocessing/studio",
+  "version": "1.0.1",
+  "description": "Local development environment for SeaSketch reports",
+  "main": "index.js",
+  "bin": {
+    "devserver": "bin/devserver"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
+  },
+  "author": "Chad Burt",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing/issues"
+  },
+  "homepage": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
+  "dependencies": {
+    "@babel/core": "^7.0.0-rc.2",
+    "@babel/plugin-proposal-class-properties": "^7.0.0-rc.2",
+    "@babel/polyfill": "^7.0.0-rc.2",
+    "@babel/preset-env": "^7.0.0-rc.2",
+    "@babel/preset-react": "^7.0.0-rc.2",
+    "@mapbox/mapbox-gl-redux": "^0.1.0",
+    "@material-ui/core": "^1.5.1",
+    "@material-ui/icons": "^2.0.3",
+    "@seasketch-sls-geoprocessing/client": "^1.0.1",
+    "@seasketch-sls-geoprocessing/packaging": "^1.0.1",
+    "@turf/centroid": "^6.0.2",
+    "babel-core": "^7.0.0-bridge.0",
+    "babel-loader": "^7.1.5",
+    "babel-plugin-source-map-support": "^2.0.1",
+    "html-webpack-plugin": "^3.2.0",
+    "mapbox-gl": "^0.48.0",
+    "react": "^16.4.2",
+    "react-dom": "^16.4.2",
+    "react-hot-loader": "^4.3.5",
+    "react-redux": "^5.0.7",
+    "react-router": "^4.3.1",
+    "react-router-dom": "^4.3.1",
+    "redux": "^4.0.0",
+    "redux-persist": "^5.10.0",
+    "redux-persist-transform-filter": "0.0.18",
+    "redux-thunk": "^2.3.0",
+    "webpack": "^4.17.1",
+    "webpack-dev-server": "^3.1.5"
+  },
+  "publishConfig": {
+    "access": "public"
+  }
+}

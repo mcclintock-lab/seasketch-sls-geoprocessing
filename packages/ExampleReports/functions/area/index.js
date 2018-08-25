@@ -1,4 +1,4 @@
-import { asHandler } from "seasketch-sls-geoprocessing";
+import { asHandler } from "@seasketch-sls-geoprocessing/handlers";
 import area from "@turf/area";
 
 const calculateArea = async (sketch) => {

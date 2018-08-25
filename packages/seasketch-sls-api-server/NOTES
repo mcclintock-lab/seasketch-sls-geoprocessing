@@ -1,0 +1,163 @@
+
+
+x show function name in header
+x display sketches on the map and zoom to them when selecting examples
+x fix navigation
+x enable sketching
+basics done but need to improve feel
+remove sketches after picking examples
+x make sure case of no-examples works okay
+internalize some of the results and client fetching to ReportSidebar
+make sure ReportSidebar has some really good PropTypes and docs
+x check that local hosting works and fix any issues with ReportSidebar
+x ensure that entire creation process works
+
+# enhancements
+x get hot-module replacement working in api-server? might make it easier to do these enhancements
+make sure projects without clients are rendered properly
+change organization of top-level
+
+  Front Page
+    Top Dashboard
+      Request rate visualization
+      Error rate visualization
+      Cost (this month, YTD)
+    List of projects (name, last updated[sort by], # functions, # clients)
+    Latest invocations (project, function, requested_at, duration or eta, payload_size, flag for ec2 runs, memory_size)
+    Recent Errors (last 10)(project, function, requested_at, log message that contains error)
+
+
+  What you need to know about:
+
+    Projects
+      name
+      when they were updated
+      how many clients, functions they have
+      what seasketch projects they are associated with
+      github repo
+      asset urls
+      s3 bucket
+
+      Clients
+        how many tabs
+        how large in file size
+          maybe link to webpack visualization?
+        what projects use them
+        [Demo]
+
+      Functions
+        lambda or ec2
+        timeout
+        normal duration
+        memory settings
+        avg memory use
+        ====> ec2 instance settings
+        cost to run
+        description if provided
+
+      invocations
+        Recent invocations
+        Recent failures
+
+    Top Level
+      List of Projects
+      List of recent invocations
+      List of recent failures
+
+
+
+
+x figure out semantics of closed: true
+x make sure failures that occur during script are handled
+x make sure failures of handlers are handled
+x show more information in invocationStatus
+// Appearance
+
+Project-geoprocessing-function
+
+status
+Started
+requested date
+
+Running
+eta 03:38:45
+requested date
+
+Complete
+finished date
+requested date
+
+Failed
+finished data
+requested date
+
+Payload
+Sketch, GeoJSON
+50kb
+map
+download
+
+resources
+function type: ec2 or lambda
+lambda-
+memory_size
+timeout
+cost
+ec2-
+instance type
+instance id
+workerTimeout
+cost
+
+
+x why is it taking so long to be notified of eta?
+x make failures render better
+  x icons/colors
+  x do something about empty results
+x add "Copy Link", "Contact Support", "View Project" to actions at the top
+x add progress bar with countdown to report sidebar
+x add means to view logs and errors from report sidebar
+x add something that finalizes logs
+xbetter workflow for deployment
+xdeploy all assets in dist rather than by name
+xmodify testSh to do something simpler
+SLS_LOGS_COMPLETE gets shoved to the top of the list and replaces lambda logs... why?
+also, why do you get a start log but not the invocationId ones, which must have been processed?
+xSLS_LOG_COMPLETE and SLS_LOGS_COMPLETE are both in my list. uh oh
+why does opening report details sometime fail?
+adapt zonation project and verify it works
+make sure status page renders well
+  add ec2 worker details (to schema and InvocationStatus, particularly timeout and launchTemplate)
+make sure invocations list renders well
+implement scroll locking behavior without container
+x update queries for recent-invocations to include outstanding requests at the top
+add watcher script to enforce timeouts
+calculate cost for ec2 runs
+xhandle cases where ec2 workers timeout. Doesn't seem to record a failure or log message
+
+
+
+later...
+send log events rather than the whole status
+make an implementation with multiple tabs
+multiple sources in one tab
+multiple reports in one module
+different geometry types
+
+
+# deployment
+spin up ec2 instance
+install/figure-out-how-to-deal-with postgres
+pm2?
+dotenv?
+setup domain
+
+
+# seasketch integration
+make report-base with @seasketch-sls-geoprocessing/client
+add admin interface to specify sketch->report associations
+conditionally load report-base
+api-server connection to mongo
+make sure it all works
+verify cacheing
+cross-browser testing

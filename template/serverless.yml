@@ -3,7 +3,7 @@ service: $template
 plugins:
   - serverless-webpack
   - serverless-offline
-  - seasketch-sls-geoprocessing
+  - '@seasketch-sls-geoprocessing/plugin'
   - serverless-log-forwarding
 
 custom:

@@ -1,0 +1,48 @@
+#!/usr/bin/env node
+const AWS = require('aws-sdk');
+const yaml = require('js-yaml');
+const fs = require('fs');
+const remoteOriginUrl = require('remote-origin-url');
+const SQS_EXPORT = 'PostDeployJSClientMetadataQueueEndpoint'
+var cloudformation = new AWS.CloudFormation({ region: "us-west-2" });
+var sqs = new AWS.SQS({ apiVersion: "2012-11-05", region: "us-west-2" });
+const s3 = new AWS.S3({region: 'us-west-2'});
+const modules = require(process.cwd() + '/dist/modules.json');
+
+const main = async () => {
+  const exports = await cloudformation.listExports({}).promise();
+  const bucket = exports.Exports.find(e => e.Name === "ReportClientCode").Value;
+  const queue = exports.Exports.find(e => e.Name === SQS_EXPORT).Value;
+  const sls = yaml.safeLoad(fs.readFileSync(process.cwd() + '/serverless.yml', 'utf8'));
+  const files = fs.readdirSync('./dist/');
+  for (var file of files) {
+    const Body = fs.readFileSync(`./dist/${file}`);
+    await s3.putObject({
+      Body,
+      Key: sls.service + "/" + file,
+      Bucket: bucket
+    }).promise();
+  }
+
+  const metadata = {
+    type: 'ClientMetadata',
+    project: sls.service,
+    bundle: `https://reportclients.seasketch.org/${sls.service}/bundle.js`,
+    apiServerBundle: `https://reportclients.seasketch.org/${sls.service}/api-server.js`,
+    profile: `https://reportclients.seasketch.org/${sls.service}/profile.json`,
+    clients: modules,
+    git: remoteOriginUrl.sync(`${process.cwd()}/.git/config`),
+    // TODO: point at seasketch bundle
+    bundleSize: fs.statSync(`${process.cwd()}/dist/api-server.js`).size
+  }
+  const response = await sqs
+    .sendMessage({
+      MessageBody: JSON.stringify(metadata),
+      QueueUrl: queue,
+      DelaySeconds: 0
+    })
+    .promise();
+  console.log("Success");
+}
+
+main();

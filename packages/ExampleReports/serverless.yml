@@ -1,0 +1,34 @@
+service: ExampleReports
+
+plugins:
+  - serverless-webpack
+  - serverless-offline
+  - '@seasketch-sls-geoprocessing/plugin'
+  - serverless-log-forwarding
+
+custom:
+  geoprocessing:
+    center: # used in interactive debugging tools.
+      - -119.673198
+      - 34.216841
+    zoom: 9
+
+provider:
+  name: aws
+  runtime: nodejs8.10
+  stage: geoprocessing
+  memorySize: 512 # Default memory size. Can be set in individual functions too
+  region: us-west-2
+
+package:
+  individually: true
+functions:
+  area:
+    handler: functions/area/index.handler
+    description: Add your description of area here
+    timeout: 4
+    memorySize: 128
+    events:
+      - http:
+          method: post
+          path: area

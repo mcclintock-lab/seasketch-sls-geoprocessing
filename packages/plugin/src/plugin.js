@@ -8,8 +8,8 @@ const AWS = require("aws-sdk");
 const remoteOriginUrl = require('remote-origin-url');
 
 const YAWN = require("yawn-yaml/cjs");
-const YML_TEMPLATE = `${__dirname}/../function_config.yml`;
-const FUNCTION_TEMPLATE = `${__dirname}/../function_template`;
+const YML_TEMPLATE = `${__dirname}/function_config.yml`;
+const FUNCTION_TEMPLATE = `${__dirname}/function_template`;
 
 var cloudformation = new AWS.CloudFormation({ region: "us-west-2" });
 var sqs = new AWS.SQS({ apiVersion: "2012-11-05", region: "us-west-2" });

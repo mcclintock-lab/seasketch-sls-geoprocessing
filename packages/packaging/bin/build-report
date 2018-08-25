@@ -1,0 +1,66 @@
+#!/usr/bin/env node
+const path = require('path');
+const webpack = require('webpack');
+const fs = require('fs');
+const entry = path.resolve(process.cwd(), "client/index.js");
+const examples = path.resolve(process.cwd(), "examples/");
+
+try {
+  fs.mkdirSync("./.dist");
+} catch(e) {
+  // do nothing, already exists
+}
+
+
+const config = require("../webpack.config.js")(entry, examples);
+
+const bundler = webpack(config);
+bundler.run((err, stats) => {
+  if (err) {
+    console.error(err.stack || err);
+    if (err.details) {
+      console.error(err.details);
+    }
+    return;
+  }
+
+  const info = stats.toJson();
+
+  if (stats.hasErrors()) {
+    console.error(info.errors);
+  }
+
+  if (stats.hasWarnings()) {
+    console.warn(info.warnings);
+  }
+  // console.log(err, stats);
+  fs.writeFileSync('./dist/profile.json', JSON.stringify(stats.toJson()));
+});
+
+
+require(`@babel/register`)({
+  ignore: [/node_modules/],
+  babelrc: false,
+  plugins: ["@babel/plugin-proposal-class-properties"],
+  presets: [
+    "@babel/preset-react",
+    ["@babel/preset-env", {
+      useBuiltIns: "usage",
+      targets: {
+        node: 8
+      }
+    }]
+  ]
+});
+const c = require(`${process.cwd()}/client/index.js`);
+const clients = [];
+for (var title of Object.keys(c)) {
+  const client = c[title];
+
+  clients.push({
+    title: title,
+    tabs: client.map((tab) => ({title: tab.title, sources: tab.sources}))
+  });
+}
+
+fs.writeFileSync('./dist/modules.json', JSON.stringify(clients));
