@@ -1,6 +1,6 @@
 {
   "name": "@seasketch-sls-geoprocessing/handlers",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "Lambda function wrappers for serverless geoprocessing functions",
   "main": "index.js",
   "bin": {
