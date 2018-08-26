@@ -1,6 +1,6 @@
 {
   "name": "seasketch-sls-api-server",
-  "version": "1.0.2",
+  "version": "1.0.3",
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www | webpack-dev-server --config ./webpack.config.js --mode development --https",
@@ -12,7 +12,7 @@
     "@mapbox/mapbox-gl-draw": "^1.0.7",
     "@material-ui/core": "^1.5.1",
     "@material-ui/icons": "^2.0.3",
-    "@seasketch-sls-geoprocessing/client": "^1.0.2",
+    "@seasketch-sls-geoprocessing/client": "^1.0.3",
     "@turf/bbox": "^6.0.1",
     "@turf/centroid": "^6.0.2",
     "@turf/projection": "^6.0.1",
