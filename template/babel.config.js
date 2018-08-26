@@ -1,2 +1,2 @@
-const { presets } = require("@seasketch-sls-geoprocessing/packaging");
-module.exports = { presets };
+const { babel } = require("@seasketch-sls-geoprocessing/packaging");
+module.exports = babel;

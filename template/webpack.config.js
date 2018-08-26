@@ -2,6 +2,8 @@ const path = require('path');
 const slsw = require('serverless-webpack');
 const nodeExternals = require('webpack-node-externals');
 
+// Note that this config will *only* be used for the sls functions. Clients are built using
+// code in @seasketch-sls-geoprocessing/packaging
 module.exports = {
   entry: slsw.lib.entries,
   target: 'node',
