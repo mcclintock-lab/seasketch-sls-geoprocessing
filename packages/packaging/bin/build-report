@@ -6,7 +6,7 @@ const entry = path.resolve(process.cwd(), "client/index.js");
 const examples = path.resolve(process.cwd(), "examples/");
 
 try {
-  fs.mkdirSync("./.dist");
+  fs.mkdirSync("./dist");
 } catch(e) {
   // do nothing, already exists
 }
