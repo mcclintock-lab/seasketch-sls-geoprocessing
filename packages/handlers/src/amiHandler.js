@@ -64,7 +64,7 @@ sudo shutdown -h -P +${process.env.WORKER_TIMEOUT} &
 su ubuntu << 'EOCOMMANDS'
 cd /home/ubuntu/
 . ~/.nvm/nvm.sh
-npm install -g aws-sdk seasketch-sls-geoprocessing/handlers
+npm install -g aws-sdk @seasketch-sls-geoprocessing/handlers
 export RESULTS_SQS_ENDPOINT="${process.env.RESULTS_SQS_ENDPOINT}"
 export LOGS_SQS_ENDPOINT="${process.env.EC2_LOGS_SQS_ENDPOINT}"
 export AWS_DEFAULT_REGION="${process.env.S3_REGION}"
@@ -78,7 +78,7 @@ if [ "$?" -eq "0" ]
 then
   echo "Okay"
 else
-  echo "run-ami-tasks failed. ensure seasketch-sls-api-server is notified"
+  echo "run-ami-tasks failed. ensure @seasketch-sls-geoprocessing/api-server is notified"
   export MESSAGE_BODY=$(cat <<EOF
   {
     "message": "invocationId: $INVOCATION_ID run-ami-tasks failed"
