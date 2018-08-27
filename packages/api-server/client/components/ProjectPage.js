@@ -86,12 +86,20 @@ class ProjectPage extends React.Component {
             </Grid>
             {
               bundleSize && (
-                <Grid className={classes.gridItem} item sm={4} xs={12}>
-                  <Button href={clients.apiServerBundle} className={classes.button} aria-label="js bundle">
-                    <BundleIcon className={classes.leftIcon} />
-                    {clients.apiServerBundle.split('/').slice(-1)}  - {filesize(bundleSize)}
-                  </Button>
-                </Grid>
+                <React.Fragment>
+                  <Grid className={classes.gridItem} item sm={4} xs={12}>
+                    <Button href={clients.bundle} className={classes.button} aria-label="js bundle">
+                      <BundleIcon className={classes.leftIcon} />
+                      {clients.bundle.split('/').slice(-1)}  - {filesize(bundleSize)}
+                    </Button>
+                  </Grid>
+                  <Grid className={classes.gridItem} item sm={4} xs={12}>
+                    <Button href={clients.apiServerBundle} className={classes.button} aria-label="js bundle">
+                      <BundleIcon className={classes.leftIcon} />
+                      {clients.apiServerBundle.split('/').slice(-1)}
+                    </Button>
+                  </Grid>
+                </React.Fragment>
               )
             }
             {
