@@ -31,6 +31,8 @@ require('./lib/ec2InstanceMonitor').init((err) => {
   process.exit();
 });
 
+setInterval(require('./lib/timeoutMonitor'), 10000);
+
 initPriceMonitor();
 
 var app = express();
