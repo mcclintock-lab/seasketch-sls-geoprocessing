@@ -1,6 +1,6 @@
 {
   "name": "ExampleReports",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "description": "SeaSketch geoprocessing project template",
   "scripts": {
     "test": "jest",
@@ -27,7 +27,7 @@
     "@seasketch-sls-geoprocessing/handlers": "^1.0.4",
     "@seasketch-sls-geoprocessing/packaging": "^1.0.3",
     "@seasketch-sls-geoprocessing/plugin": "^1.0.2",
-    "@seasketch-sls-geoprocessing/studio": "^1.0.3",
+    "@seasketch-sls-geoprocessing/studio": "^1.0.5",
     "@turf/area": "^6.0.1",
     "babel-core": "^7.0.0-bridge.0",
     "babel-jest": "^23.4.2",
