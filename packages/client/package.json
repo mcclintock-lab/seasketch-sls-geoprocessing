@@ -31,7 +31,6 @@
     "@babel/polyfill": "^7.0.0-rc.2",
     "@babel/preset-env": "^7.0.0-rc.2",
     "@babel/preset-react": "^7.0.0-rc.2",
-    "@material-ui/core": "^1.5.1",
     "@seasketch-sls-geoprocessing/packaging": "^1.0.3"
   },
   "peerDependencies": {
