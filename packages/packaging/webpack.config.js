@@ -1,5 +1,4 @@
 const webpack = require("webpack");
-// const { babelConfig } = require("@seasketch-sls-geoprocessing/packaging");
 const fs = require('fs');
 const path = require("path");
 const yaml = require("js-yaml");
@@ -20,7 +19,7 @@ module.exports = (entry, examples) => {
   return {
     mode: "production",
     output: {
-      filename: "api-server.js",
+      filename: "[name].js",
       publicPath: "/",
       library: sls.service,
       libraryTarget: "umd"
@@ -29,11 +28,14 @@ module.exports = (entry, examples) => {
       modules: [
         // resolve report implementation modules
         'node_modules', 
-        // resolve studio modules
+        // resolve packaging modules
         `${__dirname}/node_modules`
       ]
     },
-    entry: [`${__dirname}/entries/api-server.js`],
+    entry: {
+      "api-server": `${__dirname}/entries/api-server.js`,
+      bundle: `${__dirname}/entries/bundle.js`
+    },
     module: {
       rules: [
         {
@@ -42,21 +44,7 @@ module.exports = (entry, examples) => {
           use: {
             loader: "babel-loader",
             options: {
-              // plugins: [`transform-object-rest-spread`],
               extends: `${__dirname}/babel.config.js`
-              // babelrc: false,
-              // presets: [
-              //   [
-              //     `${modulesPath}babel-preset-env`,
-              //     {
-              //       targets: {
-              //         browsers: ["last 2 Chrome versions"]
-              //       }
-              //     }
-              //   ],
-              //   `${modulesPath}babel-preset-react`,
-              //   `${modulesPath}babel-preset-stage-2`
-              // ]
             }
           }
         }

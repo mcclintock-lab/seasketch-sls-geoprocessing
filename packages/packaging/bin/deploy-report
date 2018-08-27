@@ -33,7 +33,7 @@ const main = async () => {
     clients: modules,
     git: remoteOriginUrl.sync(`${process.cwd()}/.git/config`),
     // TODO: point at seasketch bundle
-    bundleSize: fs.statSync(`${process.cwd()}/dist/api-server.js`).size
+    bundleSize: fs.statSync(`${process.cwd()}/dist/bundle.js`).size
   }
   const response = await sqs
     .sendMessage({
