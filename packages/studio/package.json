@@ -1,6 +1,6 @@
 {
   "name": "@seasketch-sls-geoprocessing/studio",
-  "version": "1.0.5",
+  "version": "1.0.7",
   "description": "Local development environment for SeaSketch reports",
   "main": "index.js",
   "bin": {
@@ -31,7 +31,7 @@
     "redux-persist-transform-filter": "0.0.18",
     "redux-thunk": "^2.3.0"
   },
-  "peerDependencies": {    
+  "peerDependencies": {
     "@babel/core": "^7.0.0-rc.2",
     "@babel/plugin-proposal-class-properties": "^7.0.0-rc.2",
     "@babel/polyfill": "^7.0.0-rc.2",
