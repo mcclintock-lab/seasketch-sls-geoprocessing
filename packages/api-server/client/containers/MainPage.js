@@ -41,20 +41,12 @@ class MainPage extends React.Component {
               </TableRow>
             </TableHead>
             <TableBody>
-              {projects.map(({name, clients, updatedAt}) => {
-                var functions = 0;
-                if (clients && clients.modules) {
-                  for (var client of clients.modules) {
-                    for (var tab of client.tabs) {
-                      functions += tab.sources.length
-                    }
-                  }  
-                }
+              {projects.map(({name, clients, updatedAt, functions}) => {
                 return (
                   <TableRow key={name} style={{ cursor: 'pointer' }} onClick={() => history.push(`/${name}`)}>
                     <TableCell>{name}</TableCell>
                     <TableCell>{updatedAt ? updatedAt.toLocaleString() : ''}</TableCell>
-                    <TableCell>{functions}</TableCell>
+                    <TableCell>{functions.length}</TableCell>
                     <TableCell>{clients ? clients.modules.length : 0}</TableCell>
                   </TableRow>
                 );
