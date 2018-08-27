@@ -27,11 +27,15 @@ bundler.run((err, stats) => {
   const info = stats.toJson();
 
   if (stats.hasErrors()) {
-    console.error(info.errors);
+    for (var err of info.errors) {
+      console.error(err);
+    }
   }
 
   if (stats.hasWarnings()) {
-    console.warn(info.warnings);
+    for (var msg of info.warnings) {
+      console.warn(msg);
+    }
   }
   // console.log(err, stats);
   fs.writeFileSync('./dist/profile.json', JSON.stringify(stats.toJson()));
