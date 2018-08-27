@@ -1,6 +1,6 @@
 {
   "name": "seasketch-sls-api-server",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "private": true,
   "scripts": {
     "start": "nodemon ./bin/www | webpack-dev-server --config ./webpack.config.js --mode development --https",
