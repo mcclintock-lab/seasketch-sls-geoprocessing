@@ -12,7 +12,7 @@ try {
 }
 
 
-const config = require("../webpack.config.js")(entry, examples);
+const config = require("../webpack.config.js")(entry, examples)[0];
 
 const bundler = webpack(config);
 bundler.run((err, stats) => {
