@@ -5,7 +5,9 @@
   "scripts": {
     "start": "nodemon ./bin/www | webpack-dev-server --config ./webpack.config.js --mode development --https",
     "build": "rm -rf dist/* && NODE_ENV=production webpack",
-    "deploy-client": "rm -rf dist/* && NODE_ENV=production webpack && bin/pushClientToS3"
+    "deploy-client": "rm -rf dist/* && NODE_ENV=production webpack && bin/pushClientToS3",
+    "deploy-server": "./bin/deploy",
+    "deploy": "npm run deploy-server && npm run deploy-client"
   },
   "dependencies": {
     "@esri/arcgis-to-geojson-utils": "^1.2.0",

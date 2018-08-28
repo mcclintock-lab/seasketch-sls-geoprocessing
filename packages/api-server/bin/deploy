@@ -1,0 +1,5 @@
+#!/usr/bin/env bash
+`aws ecr get-login --no-include-email`
+docker build -t seasketch-sls-api-server .
+docker tag seasketch-sls-api-server:latest 196230260133.dkr.ecr.us-west-2.amazonaws.com/seasketch-sls-api-server:latest
+docker push 196230260133.dkr.ecr.us-west-2.amazonaws.com/seasketch-sls-api-server:latest
