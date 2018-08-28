@@ -6,6 +6,7 @@ var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var wrap = require('async-middleware').wrap
 const fs = require('fs');
+const cors = require('cors')
 const { fetchCacheOrGeometry } = require('./lib/cache');
 const knex = require('./lib/knex');
 const invoke = require('./lib/invoke');
@@ -21,6 +22,7 @@ const APPROX_SQS_COST = 0.00000040 * (// per message
                         1 + // results message
                         3 // log messages
 );
+
 const COST_PER_REQUEST = 0.0000002;
 require('./lib/sqsListeners').init((err) => {
   console.error(err);
@@ -42,6 +44,7 @@ app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
+app.use(cors())
 
 var router = express.Router();
 

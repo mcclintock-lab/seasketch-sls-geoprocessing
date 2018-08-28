@@ -21,6 +21,7 @@
     "babel-polyfill": "^6.26.0",
     "camelcase": "^5.0.0",
     "cookie-parser": "~1.4.3",
+    "cors": "^2.8.4",
     "debug": "~2.6.9",
     "expose-loader": "^0.7.5",
     "express": "~4.16.0",
