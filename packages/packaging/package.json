@@ -7,6 +7,10 @@
     "build-report": "bin/build-report",
     "deploy-report": "bin/deploy-report"
   },
+  "scripts": {
+    "build-shim": "bin/build-legacy-shim",
+    "deploy-shim": "bin/build-legacy-shim && bin/deploy-legacy-shim"
+  },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/mcclintock-lab/seasketch-sls-geoprocessing.git"
@@ -20,6 +24,7 @@
   "dependencies": {
     "js-yaml": "^3.12.0",
     "minimist": "^1.2.0",
+    "ora": "^3.0.0",
     "remote-origin-url": "^1.0.0"
   },
   "peerDependencies": {
@@ -38,5 +43,8 @@
   },
   "publishConfig": {
     "access": "public"
+  },
+  "devDependencies": {
+    "@seasketch-sls-geoprocessing/client": "^1.0.7"
   }
 }
