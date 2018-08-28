@@ -20,7 +20,10 @@ const main = async () => {
     await s3.putObject({
       Body,
       Key: sls.service + "/" + file,
-      Bucket: bucket
+      Bucket: bucket,
+      Metadata: {
+        "Cache-Control": "max-age=60"
+      }
     }).promise();
   }
 

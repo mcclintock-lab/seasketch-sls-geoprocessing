@@ -28,7 +28,7 @@ module.exports = (entry, examples) => {
         filename: "[name].js",
         publicPath: "/",
         library: sls ? sls.service : "UNKNOWN",
-        libraryTarget: "umd"
+        libraryTarget: "var"
       },
       resolve: {
         modules: [
