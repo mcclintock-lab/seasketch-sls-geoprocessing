@@ -74,11 +74,13 @@ class ReportSidebar extends React.Component {
       sketch,
       results,
       open,
-      menuItems
+      menuItems,
+      style,
+      tabContentContainerStyle
     } = this.props;
     const { anchorEl } = this.state;
     if (!title && sketch && sketch.properties) {
-      title = sketch.properties.name;
+      title = sketch.properties.name || sketch.properties.NAME;
     }
     const clientLoaded = client && !clientError;
     const loaded =
@@ -102,15 +104,16 @@ class ReportSidebar extends React.Component {
     return (
       <Paper
         className={classes.root}
-        style={{ display: !open ? "none" : "block" }}
+        style={{ display: !open ? "none" : "block", ...style }}
         elevation={13}
       >
         <AppBar position="static" color="default" className={classes.appBar}>
-          <Toolbar>
+          <Toolbar style={{paddingRight: 8}}>
             <Typography
               variant="title"
               color="inherit"
               className={classes.flex}
+              style={{maxWidth: 373}}
             >
               {title}
             </Typography>
@@ -122,10 +125,6 @@ class ReportSidebar extends React.Component {
                     aria-haspopup="true"
                     onClick={this.handleMenu}
                     color="inherit"
-                    style={{
-                      position: 'relative',
-                      right: -10
-                    }}
                   >
                     <MenuIcon />
                   </IconButton>
@@ -157,6 +156,9 @@ class ReportSidebar extends React.Component {
                       );
                     })}
                   </Menu>
+                  {
+                    this.props.rightButtons
+                  }
                 </div>
               )}
           </Toolbar>
@@ -174,6 +176,7 @@ class ReportSidebar extends React.Component {
               ? classes.tabContentContainerLoading
               : classes.tabContentContainer
           }
+          style={tabContentContainerStyle}
         >
           {!clientLoaded && <CircularProgress className={classes.progress} />}
           {clientError && (

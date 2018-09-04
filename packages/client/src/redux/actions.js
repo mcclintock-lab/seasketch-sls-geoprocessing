@@ -2,7 +2,7 @@ import loader from '../loader';
 import uuid from 'uuid/v4';
 
 export const API_HOST = process.env.NODE_ENV === 'production' ?
-  "https://analysis.seasketch.org" : "";//`${window.location.protocol}//${window.location.host}`;
+  "https://analysis.seasketch.org" : `${window.location.protocol}//${window.location.host}`;
 export const REPORTING_FETCH_CLIENT = 'REPORTING_FETCH_CLIENT';
 export const REPORTING_CLIENT_LOADED = 'REPORTING_CLIENT_LOADED';
 export const REPORTING_CLIENT_ERROR = 'REPORTING_CLIENT_ERROR';
@@ -30,6 +30,7 @@ export const fetchClients = (id, url) => {
         id: id,
         error
       })
+      throw  new Error(`Failed to load report client code ${id} at ${url}. It could be published using an incompatible version of seasketch-sls-geoprocessing.`)
     }
   }
 }
@@ -66,7 +67,7 @@ const fetchSource = async (source, sketch, dispatch) => {
   });
   try {
     let url = `${API_HOST}/api/${project}/functions/${func}`;
-    const isPOST = sketch.properties && sketch.properties.sketchClass;
+    const isPOST = sketch.properties && sketch.properties.sketchClassId;
     if (isPOST) {
       url += `?id=${sketch.properties.id}`
     }
@@ -78,22 +79,34 @@ const fetchSource = async (source, sketch, dispatch) => {
       body: isPOST ? null : JSON.stringify(sketch)
     }
     const response = await fetch(url, opts);
-    const data = await response.json();
+    if (response.ok) {
+      const data = await response.json();
+      dispatch({
+        type: REPORTING_STATUS_UPDATE,
+        source,
+        id,
+        status: fromJSON(data)
+      });
+      if(!data.closed) {
+        openEventSource(id, source, dispatch, data.events);
+      }  
+    } else {
+      dispatch({
+        type: REPORTING_STATUS_UPDATE,
+        source,
+        id,
+        status: {
+          status: "failed"
+        }
+      });  
+      setTimeout(() => {throw new Error(`Problem requesting report ${source}, ${id}. ${response.status}`)}, 1000)
+    }
+  } catch (e) {
     dispatch({
       type: REPORTING_STATUS_UPDATE,
       source,
       id,
-      status: fromJSON(data)
-    });
-    if(!data.closed) {
-      openEventSource(id, source, dispatch, data.events);
-    }
-  } catch (e) {
-    dispatch({
-      type: REPORTING_REQUEST_ERROR,
-      error: e,
-      source,
-      id
+      status: "failed"
     });
   }
 }
