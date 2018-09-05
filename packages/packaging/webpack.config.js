@@ -65,8 +65,7 @@ module.exports = (entry, examples) => {
     },
     // seasketch.org legacy support
     {
-      mode: "development",
-      devtool: "eval",
+      mode: "production",
       entry: `${__dirname}/entries/legacy.js`,
       output: {
         filename: "[name]-[hash].js",
