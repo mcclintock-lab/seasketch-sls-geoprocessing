@@ -16,7 +16,7 @@ const styles = theme => ({
 });
 
 
-module.exports = withStyles(styles)(({invocations, onClick, classes}) => (
+export default withStyles(styles)(({invocations, onClick, classes}) => (
   <Paper className={classes.root}>
     <Table className={classes.table}>
       <TableHead>

@@ -1,8 +1,9 @@
 import loader from "../loader";
 import uuid from "uuid/v4";
 
+// TODO: develop a better scheme to determine analysis endpoint
 export const API_HOST =
-  process.env.NODE_ENV === "production"
+  true || process.env.NODE_ENV === "production"
     ? "https://analysis.seasketch.org"
     : `${window.location.protocol}//${window.location.host}`;
 export const REPORTING_FETCH_CLIENT = "REPORTING_FETCH_CLIENT";

@@ -1,0 +1,4 @@
+#!/usr/bin/env bash
+rm -rf dist
+mkdir dist
+npx webpack --profile --json > dist/profile.json

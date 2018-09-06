@@ -4,3 +4,4 @@ package-lock.json
 lerna-debug.log
 .vscode
 .DS_Store
+dist/

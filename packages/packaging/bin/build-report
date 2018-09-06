@@ -61,7 +61,7 @@ function deleteDirectory(dir) {
   }
   
   
-  const config = require("../webpack.config.js")(entry, examples)[0];
+  const config = require("../webpack.config.js")(entry, examples);
   
   const bundler = webpack(config);
   bundler.run((err, stats) => {
@@ -90,10 +90,10 @@ function deleteDirectory(dir) {
     fs.writeFileSync('./dist/profile.json', JSON.stringify(stats.toJson()));
   });
   
-  
+  console.log('about to register');
   require(`@babel/register`)({
     ignore: [/node_modules/],
-    babelrc: false,
+    // babelrc: false,
     plugins: ["@babel/plugin-proposal-class-properties"],
     presets: [
       "@babel/preset-react",

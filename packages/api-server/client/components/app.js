@@ -19,6 +19,7 @@ import InvocationPage from '../containers/InvocationPage';
 import JssProvider from 'react-jss/lib/JssProvider';
 import { create } from 'jss';
 import { createGenerateClassName, jssPreset } from '@material-ui/core/styles';
+require("expose-loader?SeaSketchReportClient!@seasketch-sls-geoprocessing/client");
 
 const generateClassName = createGenerateClassName();
 const jss = create(jssPreset());

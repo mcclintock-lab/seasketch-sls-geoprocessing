@@ -7,7 +7,7 @@ import {
 
 const ExampleTab = ({ results, sketch }) => (
   <React.Fragment>
-    <JSONCard title="Hattributes" json={sketch.properties} />
+    <JSONCard title="Attributes" json={sketch.properties} />
     {
       Object.keys(results).map((functionName) => (
         <JSONCard key={functionName} title={functionName} json={results[functionName]} />

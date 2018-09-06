@@ -1,15 +1,13 @@
 const webpack = require('webpack');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
-const path = require("path");
 const CLIENT_VERSION = require('@seasketch-sls-geoprocessing/client/package.json').version
 const PACKAGING_VERSION = require('@seasketch-sls-geoprocessing/packaging/package.json').version
-
 module.exports = {
   mode: "production" || process.env.NODE_ENV || "development",
   devtool: true || process.env.NODE_ENV === 'production' ? false : "eval-source-map",
-  entry: true || process.env.NODE_ENV === 'production' ? ['babel-polyfill', './client/index.js'] : [
-    'babel-polyfill',
+  entry: true || process.env.NODE_ENV === 'production' ? ['@babel/polyfill', './client/index.js'] : [
+    '@babel/polyfill',
     'react-hot-loader/patch',
     "./client/index.js"
   ],
@@ -37,13 +35,6 @@ module.exports = {
         use: [{
           loader: 'expose-loader',
           options: 'ReactDOM'
-        }]
-      },
-      {
-        test: require.resolve('@seasketch-sls-geoprocessing/client'),
-        use: [{
-          loader: 'expose-loader',
-          options: 'SeaSketchReportClient'
         }]
       }
     ],

@@ -144,14 +144,14 @@ const init = async clients => {
   }
   window.React = React;
   window.ReactDOM = ReactDOM;
-  window.SeaSketchReportClient = SeaSketchReportClient;
+  window.SeaSketchReportClient = {...SeaSketchReportClient};
 
   let reportSidebar;
   // create a store
   const store = createStore(reducers, applyMiddleware(ReduxThunk));
-  SeaSketchReportClient.store = store;
+  window.SeaSketchReportClient.store = store;
   
-  SeaSketchReportClient.showReport = (sketch, project, clientName, menuItems) => {
+  window.SeaSketchReportClient.showReport = (sketch, project, clientName, menuItems) => {
     const client = store.getState().clients[project].clients
       .find((client) => client.name === clientName);
     if (!client) {
@@ -160,7 +160,7 @@ const init = async clients => {
     reportSidebar.open({sketch, project, client, menuItems});
   }
 
-  SeaSketchReportClient.hideReport = () => {
+  window.SeaSketchReportClient.hideReport = () => {
     reportSidebar.close()
   }
 

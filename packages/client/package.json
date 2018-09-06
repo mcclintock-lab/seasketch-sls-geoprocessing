@@ -2,7 +2,8 @@
   "name": "@seasketch-sls-geoprocessing/client",
   "version": "1.0.8",
   "description": "Client react & redux modules for SeaSketch reports",
-  "main": "lib/index.js",
+  "main": "src/index.js",
+  "module": "src/index.js",
   "scripts": {
     "lib": "babel src -d lib --copy-files",
     "lib:watch": "babel src -w -d lib --copy-files",
@@ -26,12 +27,12 @@
     "uuid": "^3.3.2"
   },
   "devDependencies": {
-    "@babel/cli": "^7.0.0-rc.2",
-    "@babel/core": "^7.0.0-rc.2",
-    "@babel/plugin-proposal-class-properties": "^7.0.0-rc.2",
-    "@babel/polyfill": "^7.0.0-rc.2",
-    "@babel/preset-env": "^7.0.0-rc.2",
-    "@babel/preset-react": "^7.0.0-rc.2",
+    "@babel/cli": "^7.0.0",
+    "@babel/core": "^7.0.0",
+    "@babel/plugin-proposal-class-properties": "^7.0.0",
+    "@babel/polyfill": "^7.0.0",
+    "@babel/preset-env": "^7.0.0",
+    "@babel/preset-react": "^7.0.0",
     "@seasketch-sls-geoprocessing/packaging": "^1.0.8"
   },
   "peerDependencies": {

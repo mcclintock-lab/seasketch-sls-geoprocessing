@@ -5,20 +5,8 @@ const s3 = new AWS.S3({region: 'us-west-2'});
 const fs = require('fs');
 const ora = require('ora');
 const BUCKET = "cdn.seasketch.org";
-const PARAMS = {
-  // Body:
-  // Key:
-  // Bucket:
-};
 
-const FAR_FUTURE_CACHE_METADATA = {
-  Metadata: {
-    "Cache-Control": "max-age=31536000"
-  }
-}
-
-console.log('pushing dist/* to s3...');
-// Cache-Control max-age=31536000
+console.log('pushing to s3...');
 
 fs.readdir("./dist/", async function(err, items) {
   for (let item of items) {
@@ -39,7 +27,7 @@ fs.readdir("./dist/", async function(err, items) {
         params.ContentType = "text/html";
         params.Key = "seasketch-sls-api-server.html";
       }
-      const response = await s3.putObject(params).promise();
+      await s3.putObject(params).promise();
       spinner.succeed();
     }
   }
