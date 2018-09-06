@@ -4,7 +4,7 @@ const knex = require("./knex");
 const AWS = require("aws-sdk");
 // Set the region
 AWS.config.update({ region: process.env.AWS_REGION });
-const {updatePrices} = require('./ec2Pricing');
+const { updatePrices } = require("./ec2Pricing");
 
 // Create the SQS service object
 var sqs = new AWS.SQS({ apiVersion: "2012-11-05" });
@@ -13,7 +13,7 @@ const resultQueueURL = process.env.REPORT_RESULT_SQS;
 const logQueueURL = process.env.REPORT_LOG_SQS;
 const metadataQueueURL = process.env.METADATA_SQS;
 const clientQueueURL = process.env.CLIENT_METADATA_SQS;
-const uuid = require('uuid/v4');
+const uuid = require("uuid/v4");
 const uuidpattern = /([0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/i;
 
 const getClientMetadataMessages = async errorHandler => {
@@ -29,21 +29,30 @@ const getClientMetadataMessages = async errorHandler => {
       .promise();
     await Promise.all(
       (data.Messages || []).map(async message => {
-        const {project, clients, bundle, apiServerBundle, git, bundleSize} = JSON.parse(
-          message.Body
-        );
+        const {
+          project,
+          clients,
+          bundle,
+          apiServerBundle,
+          git,
+          bundleSize,
+          requiredClientVersion,
+          requiredPackagingVersion
+        } = JSON.parse(message.Body);
         await knex("projects")
           .where("name", project)
           .update({
             clients: JSON.stringify({
               bundle,
               apiServerBundle,
+              requiredClientVersion,
+              requiredPackagingVersion,
               modules: clients
             }),
             updated_at: new Date(),
             git: git,
             bundle_size: bundleSize
-          })
+          });
         var deleteParams = {
           QueueUrl: clientQueueURL,
           ReceiptHandle: message.ReceiptHandle
@@ -70,14 +79,21 @@ const getMetadataMessages = async errorHandler => {
       .promise();
     await Promise.all(
       (data.Messages || []).map(async message => {
-        const { name, region, center, zoom, project, defaultMemorySize, functions, git } = JSON.parse(
-          message.Body
-        );
+        const {
+          name,
+          region,
+          center,
+          zoom,
+          project,
+          defaultMemorySize,
+          functions,
+          git
+        } = JSON.parse(message.Body);
         return knex.transaction(async txn => {
           var results = await knex("projects")
             .transacting(txn)
             .count("name")
-            .where("name", name)
+            .where("name", name);
           if (results[0].count == 1) {
             await knex("projects")
               .where("name", name)
@@ -89,7 +105,7 @@ const getMetadataMessages = async errorHandler => {
                 project,
                 updated_at: new Date(),
                 git
-              })
+              });
           } else {
             await knex("projects")
               .transacting(txn)
@@ -101,15 +117,18 @@ const getMetadataMessages = async errorHandler => {
                 project,
                 updated_at: new Date(),
                 git
-              })
+              });
           }
           for (var func of functions) {
-            var results = await knex('functions').transacting(txn).where('function_name', func.functionName).count('name')
+            var results = await knex("functions")
+              .transacting(txn)
+              .where("function_name", func.functionName)
+              .count("name");
             if (results[0].count == 1) {
               debug(`Received update to ${func.functionName}`);
-              await knex('functions')
+              await knex("functions")
                 .transacting(txn)
-                .where('function_name', func.functionName)
+                .where("function_name", func.functionName)
                 .update({
                   project_name: name,
                   name: func.name,
@@ -123,7 +142,7 @@ const getMetadataMessages = async errorHandler => {
                 });
             } else {
               debug(`Registered new function to ${func.functionName}`);
-              await knex('functions')
+              await knex("functions")
                 .transacting(txn)
                 .insert({
                   project_name: name,
@@ -220,8 +239,8 @@ const getMetadataMessages = async errorHandler => {
 //   }
 // };
 
-const getRequestId = (msg) => {
-  debug("Will match")
+const getRequestId = msg => {
+  debug("Will match");
   const match = msg.message.match(
     /([0-9A-F]{8}-[0-9A-F]{4}-[0-9A-F]{4}-[89AB][0-9A-F]{3}-[0-9A-F]{12})/i
   );
@@ -231,12 +250,12 @@ const getRequestId = (msg) => {
   } else {
     return false;
   }
-}
+};
 
-const findRequestId = (messages) => {
+const findRequestId = messages => {
   debug("findRequestId");
   if (messages.amiHandler) {
-    debug(`Found amiHandler ${messages.amiHandler}`)
+    debug(`Found amiHandler ${messages.amiHandler}`);
     return messages.amiHandler;
   }
   for (var msg of messages) {
@@ -254,28 +273,28 @@ const findRequestId = (messages) => {
       }
     }
   }
-  debug('could not find requestId');
+  debug("could not find requestId");
   return false;
-}
+};
 
 const assignRequestId = (message, defaultId) => {
   message.request_id = getRequestId(message) || defaultId;
-  debug('assigned')
-  debug(message)
-}
+  debug("assigned");
+  debug(message);
+};
 
-const assignRequestIds = (messages) => {
+const assignRequestIds = messages => {
   var requestId = findRequestId(messages);
-  debug(`requestId = ${requestId}`)
+  debug(`requestId = ${requestId}`);
   if (requestId) {
-    debug("in if block")
-    debug(messages)
-    debug(typeof messages)
+    debug("in if block");
+    debug(messages);
+    debug(typeof messages);
     if (messages.messages) {
-      debug("yes, messages")
-      debug(typeof messages.messages)
+      debug("yes, messages");
+      debug(typeof messages.messages);
       for (var msg of messages.messages) {
-        debug('assign', msg);
+        debug("assign", msg);
         assignRequestId(msg, requestId);
       }
     } else {
@@ -297,7 +316,7 @@ const assignRequestIds = (messages) => {
   } else {
     return messages;
   }
-}
+};
 
 const getLogMessages = async errorHandler => {
   try {
@@ -326,7 +345,11 @@ const getLogMessages = async errorHandler => {
       handles.push(message.ReceiptHandle);
     });
     if (messages.length) {
-      debug(`Received ${messages.length} message${messages.length === 1 ? '' : 's'} from log sqs.`);
+      debug(
+        `Received ${messages.length} message${
+          messages.length === 1 ? "" : "s"
+        } from log sqs.`
+      );
     }
 
     var invocationIds = [];
@@ -334,7 +357,10 @@ const getLogMessages = async errorHandler => {
     await knex.transaction(async trx => {
       for (let message of messages) {
         if (message.messages) {
-          messagesForInsert = [...messagesForInsert, ...message.messages.filter((m) => m.request_id)];
+          messagesForInsert = [
+            ...messagesForInsert,
+            ...message.messages.filter(m => m.request_id)
+          ];
         } else {
           if (message.request_id) {
             messagesForInsert = [...messagesForInsert, message];
@@ -342,7 +368,7 @@ const getLogMessages = async errorHandler => {
         }
       }
       for (let message of messagesForInsert) {
-        debug(message)
+        debug(message);
         if (message.type && message.type.length && message.request_id) {
           // is a worker. update status
           if (invocationIds.indexOf(message.request_id) === -1) {
@@ -367,7 +393,7 @@ const getLogMessages = async errorHandler => {
           if (invocationIds.indexOf(invocationId) === -1) {
             invocationIds.push(invocationId);
           }
-          debug("invokeIdMatch")
+          debug("invokeIdMatch");
           debug(invokeIdMatch);
           await knex("invocations")
             .where("uuid", invocationId)
@@ -381,10 +407,13 @@ const getLogMessages = async errorHandler => {
         // Check for errors
         // TODO: This might not work correctly with ec2 workers since
         // request_id could be different
-        if (message.message.indexOf("errorMessage") != -1 || /Task timed out/.test(message.message)) {
-          debug("error message")
+        if (
+          message.message.indexOf("errorMessage") != -1 ||
+          /Task timed out/.test(message.message)
+        ) {
+          debug("error message");
           debug(message.message);
-          message.type = 'stderr';
+          message.type = "stderr";
           await knex("invocations")
             .where("request_id", message.request_id)
             .whereNull("results") // in case results are already in
@@ -393,16 +422,21 @@ const getLogMessages = async errorHandler => {
               status: "failed"
             });
         }
-        if (/SLS_LOGS_COMPLETE|END RequestId|errorMessage|Task timed out/.test(message.message)) {
+        if (
+          /SLS_LOGS_COMPLETE|END RequestId|errorMessage|Task timed out/.test(
+            message.message
+          )
+        ) {
           debug(`setting message as last ${message.request_id}`);
           message.last = true;
-          await knex('invocations')
+          await knex("invocations")
             .where("request_id", message.request_id)
-            .whereNotNull('results').orWhere('status', 'failed')
+            .whereNotNull("results")
+            .orWhere("status", "failed")
             .transacting(trx)
             .update({
               closed: true
-            })
+            });
         }
 
         // Check for processes ending
@@ -434,8 +468,8 @@ const getLogMessages = async errorHandler => {
               status: "complete"
             });
         }
-        if (message.type && message.type === 'command') {
-          debug("setting status to worker-running")
+        if (message.type && message.type === "command") {
+          debug("setting status to worker-running");
           await knex("invocations")
             .where("uuid", message.request_id)
             .where("ami_handler", true)
@@ -464,7 +498,7 @@ const getLogMessages = async errorHandler => {
           return sqs.deleteMessage(deleteParams).promise();
         })
       );
-    })
+    });
     // start again
     getLogMessages(errorHandler);
   } catch (e) {
@@ -475,9 +509,9 @@ const getLogMessages = async errorHandler => {
 
 module.exports = {
   init: errorHandler => {
-    require('./sqsHandlers/lambda')(errorHandler);
-    require('./sqsHandlers/ec2logs')(errorHandler);
-    require('./sqsHandlers/results')(errorHandler);
+    require("./sqsHandlers/lambda")(errorHandler);
+    require("./sqsHandlers/ec2logs")(errorHandler);
+    require("./sqsHandlers/results")(errorHandler);
     // getResultMessages(errorHandler);
     // getLogMessages(errorHandler);
     getMetadataMessages(errorHandler);

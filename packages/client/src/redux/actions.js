@@ -1,15 +1,17 @@
-import loader from '../loader';
-import uuid from 'uuid/v4';
+import loader from "../loader";
+import uuid from "uuid/v4";
 
-export const API_HOST = process.env.NODE_ENV === 'production' ?
-  "https://analysis.seasketch.org" : `${window.location.protocol}//${window.location.host}`;
-export const REPORTING_FETCH_CLIENT = 'REPORTING_FETCH_CLIENT';
-export const REPORTING_CLIENT_LOADED = 'REPORTING_CLIENT_LOADED';
-export const REPORTING_CLIENT_ERROR = 'REPORTING_CLIENT_ERROR';
-import {fromJSON} from './utils';
+export const API_HOST =
+  process.env.NODE_ENV === "production"
+    ? "https://analysis.seasketch.org"
+    : `${window.location.protocol}//${window.location.host}`;
+export const REPORTING_FETCH_CLIENT = "REPORTING_FETCH_CLIENT";
+export const REPORTING_CLIENT_LOADED = "REPORTING_CLIENT_LOADED";
+export const REPORTING_CLIENT_ERROR = "REPORTING_CLIENT_ERROR";
+import { fromJSON } from "./utils";
 
 export const fetchClients = (id, url) => {
-  return async (dispatch) => {
+  return async dispatch => {
     dispatch({
       type: REPORTING_FETCH_CLIENT,
       id: id,
@@ -23,22 +25,24 @@ export const fetchClients = (id, url) => {
         id: id,
         clients: clients,
         examples: examples
-      })
+      });
     } catch (e) {
       dispatch({
         type: REPORTING_CLIENT_ERROR,
         id: id,
         error
-      })
-      throw  new Error(`Failed to load report client code ${id} at ${url}. It could be published using an incompatible version of seasketch-sls-geoprocessing.`)
+      });
+      throw new Error(
+        `Failed to load report client code ${id} at ${url}. It could be published using an incompatible version of seasketch-sls-geoprocessing.`
+      );
     }
-  }
-}
+  };
+};
 
-export const REPORTING_FETCH_RESULTS = 'REPORTING_FETCH_RESULTS';
+export const REPORTING_FETCH_RESULTS = "REPORTING_FETCH_RESULTS";
 
 export const fetchResults = (sources, sketch) => {
-  return (dispatch) => {
+  return dispatch => {
     dispatch({
       type: REPORTING_FETCH_RESULTS,
       sources: sources,
@@ -47,18 +51,19 @@ export const fetchResults = (sources, sketch) => {
     for (const source of sources) {
       fetchSource(source, sketch, dispatch);
     }
-  }
-}
+  };
+};
 
-export const REPORTING_RESULTS_REQUESTED = 'REPORTING_RESULTS_REQUESTED';
-export const REPORTING_STATUS_UPDATE = 'REPORTING_RESULTS_STATUS_UPDATE';
-export const REPORTING_LOG_EVENT = 'REPORTING_LOG_EVENT';
-export const REPORTING_REQUEST_ERROR = 'REPORTING_RESULTS_REQUEST_ERROR';
-export const REPORTING_EVENT_TYPE_STATUS_UPDATE = 'REPORTING_EVENT_TYPE_STATUS_UPDATE';
-export const REPORTING_EVENT_TYPE_LOG_EVENT = 'REPORTING_EVENT_TYPE_LOG_EVENT';
+export const REPORTING_RESULTS_REQUESTED = "REPORTING_RESULTS_REQUESTED";
+export const REPORTING_STATUS_UPDATE = "REPORTING_RESULTS_STATUS_UPDATE";
+export const REPORTING_LOG_EVENT = "REPORTING_LOG_EVENT";
+export const REPORTING_REQUEST_ERROR = "REPORTING_RESULTS_REQUEST_ERROR";
+export const REPORTING_EVENT_TYPE_STATUS_UPDATE =
+  "REPORTING_EVENT_TYPE_STATUS_UPDATE";
+export const REPORTING_EVENT_TYPE_LOG_EVENT = "REPORTING_EVENT_TYPE_LOG_EVENT";
 
 const fetchSource = async (source, sketch, dispatch) => {
-  const [ project, stage, func] = source.split("-");
+  const [project, stage, func] = source.split("-");
   const id = sketch.properties.id || uuid();
   dispatch({
     type: REPORTING_RESULTS_REQUESTED,
@@ -69,7 +74,7 @@ const fetchSource = async (source, sketch, dispatch) => {
     let url = `${API_HOST}/api/${project}/functions/${func}`;
     const isPOST = sketch.properties && sketch.properties.sketchClassId;
     if (isPOST) {
-      url += `?id=${sketch.properties.id}`
+      url += `?id=${sketch.properties.id}`;
     }
     const opts = {
       method: isPOST ? "GET" : "POST",
@@ -77,7 +82,7 @@ const fetchSource = async (source, sketch, dispatch) => {
         "Content-Type": "application/json"
       },
       body: isPOST ? null : JSON.stringify(sketch)
-    }
+    };
     const response = await fetch(url, opts);
     if (response.ok) {
       const data = await response.json();
@@ -87,9 +92,9 @@ const fetchSource = async (source, sketch, dispatch) => {
         id,
         status: fromJSON(data)
       });
-      if(!data.closed) {
+      if (!data.closed) {
         openEventSource(id, source, dispatch, data.events);
-      }  
+      }
     } else {
       dispatch({
         type: REPORTING_STATUS_UPDATE,
@@ -98,8 +103,12 @@ const fetchSource = async (source, sketch, dispatch) => {
         status: {
           status: "failed"
         }
-      });  
-      setTimeout(() => {throw new Error(`Problem requesting report ${source}, ${id}. ${response.status}`)}, 1000)
+      });
+      setTimeout(() => {
+        throw new Error(
+          `Problem requesting report ${source}, ${id}. ${response.status}`
+        );
+      }, 1000);
     }
   } catch (e) {
     dispatch({
@@ -109,11 +118,11 @@ const fetchSource = async (source, sketch, dispatch) => {
       status: "failed"
     });
   }
-}
+};
 
 const eventSources = {};
 
-// Opens an SSE channel to listen for updates to an reporting invocation. 
+// Opens an SSE channel to listen for updates to an reporting invocation.
 // Will dispatch actions:
 //   RESULTS_STATUS_UPDATE
 //   RESULTS_LOGS
@@ -123,7 +132,7 @@ export const openEventSource = (id, source, dispatch, url) => {
     eventSources[key].close();
   }
   eventSources[key] = new EventSource(url);
-  eventSources[key].onmessage = (e) => {
+  eventSources[key].onmessage = e => {
     const data = JSON.parse(e.data);
     if (!data.eventType) {
       // old style message
@@ -147,7 +156,7 @@ export const openEventSource = (id, source, dispatch, url) => {
       if (data.payload.closed) {
         eventSources[key].close();
         eventSources[key] = null;
-      }  
+      }
     } else if (data.eventType === REPORTING_EVENT_TYPE_LOG_EVENT) {
       dispatch({
         type: REPORTING_LOG_EVENT,
@@ -158,5 +167,5 @@ export const openEventSource = (id, source, dispatch, url) => {
     } else {
       throw new Error(`Unknown reporting event type ${data.eventType}`);
     }
-  }
-}
+  };
+};

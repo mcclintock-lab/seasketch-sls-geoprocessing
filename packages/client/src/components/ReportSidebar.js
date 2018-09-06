@@ -16,6 +16,14 @@ import MenuItem from "@material-ui/core/MenuItem";
 import Menu from "@material-ui/core/Menu";
 import MenuIcon from "@material-ui/icons/Menu";
 import ProgressIndicator from './ProgressIndicator';
+import { versionSatisfied, CLIENT_VERSION, PACKAGING_VERSION } from '../versions';
+import Card from "./Card";
+import List from '@material-ui/core/List';
+import ListItem from '@material-ui/core/ListItem';
+import ListItemText from '@material-ui/core/ListItemText';
+import ListItemIcon from '@material-ui/core/ListItemIcon';
+import ListSubheader from '@material-ui/core/ListSubheader';
+import ListItemSecondaryAction from '@material-ui/core/ListItemSecondaryAction';
 
 const styles = theme => ({
   root: {
@@ -100,6 +108,7 @@ class ReportSidebar extends React.Component {
     if (client && client.tabs && client.tabs.length) {
       ReportTab = client.tabs[0];
     }
+
 
     return (
       <Paper
@@ -200,10 +209,44 @@ class ReportSidebar extends React.Component {
             </div>
           )}
           {!sketch && clientLoaded && "Choose a sketch to display reports"}
-          {loaded &&
+          {loaded && clientLoaded && versionSatisfied(client) &&
             results.length === client.tabs[selectedTab].sources.length && complete.length === results.length && (
               <ReportTab sketch={sketch} results={resultsBySource} />
             )}
+          {
+            loaded && !versionSatisfied(client) && (
+              <Card title="Client Dependency Problem">
+                <List subheader={<ListSubheader>Current Versions</ListSubheader>}>
+                  <ListItem>
+                    <ListItemText primary="@seasketch-sls-geoprocessing/client" />
+                    <ListItemSecondaryAction>
+                      <Typography variant="body2">{CLIENT_VERSION}</Typography>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText primary="@seasketch-sls-geoprocessing/packaging" />
+                    <ListItemSecondaryAction>
+                    <Typography variant="body2">{PACKAGING_VERSION}</Typography>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                </List>
+                <List subheader={<ListSubheader>Required Versions</ListSubheader>}>
+                  <ListItem>
+                    <ListItemText primary="@seasketch-sls-geoprocessing/client" />
+                    <ListItemSecondaryAction>
+                    <Typography variant="body2">{client.requiredClientVersion}</Typography>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                  <ListItem>
+                    <ListItemText primary="@seasketch-sls-geoprocessing/packaging" />
+                    <ListItemSecondaryAction>
+                    <Typography variant="body2">{client.requiredPackagingVersion}</Typography>
+                    </ListItemSecondaryAction>
+                  </ListItem>
+                </List>
+              </Card>
+            )
+          }
           {complete.length < results.length &&
             !clientError &&
             !failed.length && <ProgressIndicator eta={results[0].eta} logs={results[0].logPage} />}

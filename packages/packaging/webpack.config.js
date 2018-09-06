@@ -10,13 +10,23 @@ try {
   // probably building shim, ignore
 }
 
+const package = require(path.join(process.cwd(), 'package.json'));
+
+const CLIENT_VERSION = require('@seasketch-sls-geoprocessing/client/package.json').version
+const PACKAGING_VERSION = package.name === '@seasketch-sls-geoprocessing/packaging' ? package.version : require('@seasketch-sls-geoprocessing/packaging/package.json').version
+
+const REQUIRED_CLIENT_VERSION = package.dependencies['@seasketch-sls-geoprocessing/client'];
+const REQUIRED_PACKAGING_VERSION = package.dependencies['@seasketch-sls-geoprocessing/packaging'];
+
 module.exports = (entry, examples) => {
   const definePlugin = new webpack.DefinePlugin({
     process: {
       env: {
         // expose example and client lists as env vars for studio to use at runtime
         EXAMPLES: `"${examples}"`,
-        CLIENTS: `"${entry}"`
+        CLIENTS: `"${entry}"`,
+        REQUIRED_CLIENT_VERSION: `"${REQUIRED_CLIENT_VERSION}"`,
+        REQUIRED_PACKAGING_VERSION: `"${REQUIRED_PACKAGING_VERSION}"`
       }
     }
   });
@@ -25,7 +35,7 @@ module.exports = (entry, examples) => {
     {
       mode: "production",
       output: {
-        filename: "[name].js",
+        filename: "[name]-[hash].js",
         publicPath: "/",
         library: sls ? sls.service : "UNKNOWN",
         libraryTarget: "var"
@@ -95,7 +105,14 @@ module.exports = (entry, examples) => {
           }
         ]
       },
-      plugins: [],
+      plugins: [new webpack.DefinePlugin({
+        process: {
+          env: {
+            CLIENT_VERSION: `"${CLIENT_VERSION}"`,
+            PACKAGING_VERSION: `"${PACKAGING_VERSION}"`
+          }
+        }
+      })],
       // externals: {
       //   react: "React",
       //   "react-dom": "ReactDOM",

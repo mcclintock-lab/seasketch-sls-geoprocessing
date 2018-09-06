@@ -2,6 +2,11 @@ const webpack = require("webpack");
 const HtmlWebPackPlugin = require("html-webpack-plugin");
 const { babel } = require("@seasketch-sls-geoprocessing/packaging");
 const path = require("path");
+const CLIENT_VERSION = require('@seasketch-sls-geoprocessing/client/package.json').version
+const PACKAGING_VERSION = require('@seasketch-sls-geoprocessing/packaging/package.json').version
+const package = require(path.join(process.cwd(), 'package.json'));
+const REQUIRED_CLIENT_VERSION = package.dependencies['@seasketch-sls-geoprocessing/client'];
+const REQUIRED_PACKAGING_VERSION = package.dependencies['@seasketch-sls-geoprocessing/packaging'];
 
 babel.plugins.push(
   path.resolve(
@@ -21,7 +26,11 @@ module.exports = (entry, examples) => {
       env: {
         // expose example and client lists as env vars for studio to use at runtime
         EXAMPLES: `"${examples}"`,
-        CLIENTS: `"${entry}"`
+        CLIENTS: `"${entry}"`,
+        CLIENT_VERSION: `"${CLIENT_VERSION}"`,
+        PACKAGING_VERSION: `"${PACKAGING_VERSION}"`,
+        REQUIRED_CLIENT_VERSION: `"${REQUIRED_CLIENT_VERSION}"`,
+        REQUIRED_PACKAGING_VERSION: `"${REQUIRED_PACKAGING_VERSION}"`
       }
     }
   });
@@ -36,13 +45,14 @@ module.exports = (entry, examples) => {
     resolve: {
       modules: [
         // resolve report implementation modules
-        "node_modules",
+        path.join(process.cwd(), 'node_modules'),
+        'node_modules',
         // resolve studio modules
         `${__dirname}/node_modules`
       ],
       alias: {
         "babel-core": path.resolve(
-          path.join(__dirname, "./node_modules/@babel/core")
+          path.join(process.cwd(), "./node_modules/@babel/core")
         )
       }
     },

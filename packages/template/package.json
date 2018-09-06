@@ -7,7 +7,7 @@
     "start": "devserver & sls offline start",
     "build": "NODE_PATH=./node_modules build-report",
     "deploy": "npm run deploy-function && npm run deploy-client",
-    "deploy-client": "npm run build && deploy-report",
+    "deploy-client": "NODE_ENV=production npm run build && deploy-report",
     "deploy-function": "sls deploy"
   },
   "author": "Chad Burt <chad@underbluewaters.net>",

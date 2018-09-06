@@ -9,8 +9,8 @@ import { connect, Provider } from 'react-redux';
 import ReduxThunk from "redux-thunk";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
-const esriUtils = require('@esri/arcgis-to-geojson-utils');
-const proj = require('@turf/projection');
+// const esriUtils = require('@esri/arcgis-to-geojson-utils');
+// const proj = require('@turf/projection');
 
 const sketchToGeoJSON = (sketch) => {
   const properties = sketch.getAttributes().reduce((props, attr) => {

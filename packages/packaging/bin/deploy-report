@@ -8,6 +8,11 @@ var cloudformation = new AWS.CloudFormation({ region: "us-west-2" });
 var sqs = new AWS.SQS({ apiVersion: "2012-11-05", region: "us-west-2" });
 const s3 = new AWS.S3({region: 'us-west-2'});
 const modules = require(process.cwd() + '/dist/modules.json');
+const path = require('path');
+const package = require(path.join(process.cwd(), 'package.json'));
+const REQUIRED_CLIENT_VERSION = package.dependencies['@seasketch-sls-geoprocessing/client'];
+const REQUIRED_PACKAGING_VERSION = package.dependencies['@seasketch-sls-geoprocessing/packaging'];
+const ora = require('ora');
 
 const main = async () => {
   const exports = await cloudformation.listExports({}).promise();
@@ -15,28 +20,41 @@ const main = async () => {
   const queue = exports.Exports.find(e => e.Name === SQS_EXPORT).Value;
   const sls = yaml.safeLoad(fs.readFileSync(process.cwd() + '/serverless.yml', 'utf8'));
   const files = fs.readdirSync('./dist/');
+  let bundleName = null;
+  let apiServerBundleName = null; 
+  console.log('Uploading to S3');
   for (var file of files) {
     const Body = fs.readFileSync(`./dist/${file}`);
+    if (/bundle/.test(file)) {
+      bundleName = file;
+    } else if (/api-server/.test(file)) {
+      apiServerBundleName = file;
+    }
+    const spinner = ora(`https://reportclients.seasketch.org/${sls.service}/${file}`).start();
     await s3.putObject({
       Body,
       Key: sls.service + "/" + file,
       Bucket: bucket,
       Metadata: {
-        "Cache-Control": "max-age=60"
+        "Cache-Control": "max-age=31536000"
       }
     }).promise();
+    spinner.succeed();
   }
 
+  const spinner = ora(`registering with https://analysis.seasketch.org`).start();
   const metadata = {
     type: 'ClientMetadata',
     project: sls.service,
-    bundle: `https://reportclients.seasketch.org/${sls.service}/bundle.js`,
-    apiServerBundle: `https://reportclients.seasketch.org/${sls.service}/api-server.js`,
-    profile: `https://reportclients.seasketch.org/${sls.service}/profile.json`,
+    bundle: `https://reportclients.seasketch.org/${sls.service}/${bundleName}`,
+    apiServerBundle: `https://reportclients.seasketch.org/${sls.service}/${apiServerBundleName}`,
+    profile: `https://s3-us-west-2.amazonaws.com/seasketchreportingcore-productio-reportclientcode-123ttt0koh0wz/${sls.service}/profile.json`,
+    requiredClientVersion: REQUIRED_CLIENT_VERSION,
+    requiredPackagingVersion: REQUIRED_PACKAGING_VERSION,
     clients: modules,
     git: remoteOriginUrl.sync(`${process.cwd()}/.git/config`),
     // TODO: point at seasketch bundle
-    bundleSize: fs.statSync(`${process.cwd()}/dist/bundle.js`).size
+    bundleSize: fs.statSync(`${process.cwd()}/dist/${bundleName}`).size
   }
   const response = await sqs
     .sendMessage({
@@ -45,7 +63,7 @@ const main = async () => {
       DelaySeconds: 0
     })
     .promise();
-  console.log("Success");
+  spinner.succeed();
 }
 
 main();

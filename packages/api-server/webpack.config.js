@@ -2,9 +2,8 @@ const webpack = require('webpack');
 const HtmlWebpackPlugin = require("html-webpack-plugin");
 const BundleAnalyzerPlugin = require('webpack-bundle-analyzer').BundleAnalyzerPlugin;
 const path = require("path");
-
-console.log(
-  'client', require.resolve('@seasketch-sls-geoprocessing/client'))
+const CLIENT_VERSION = require('@seasketch-sls-geoprocessing/client/package.json').version
+const PACKAGING_VERSION = require('@seasketch-sls-geoprocessing/packaging/package.json').version
 
 module.exports = {
   mode: "production" || process.env.NODE_ENV || "development",
@@ -54,7 +53,8 @@ module.exports = {
     modules: [
       // resolve report implementation modules
       'node_modules', 
-      `${__dirname}/node_modules`
+      `${__dirname}/node_modules`,
+      `${process.cwd()}/node_modules`
     ]
   },
   output: {
@@ -67,14 +67,30 @@ module.exports = {
       template: "./index.html",
       favicon: "./favicon.ico"
     }),
-    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/)
+    new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     // , new BundleAnalyzerPlugin()
+    new webpack.DefinePlugin({
+      process: {
+        env: {
+          CLIENT_VERSION: `"${CLIENT_VERSION}"`,
+          PACKAGING_VERSION: `"${PACKAGING_VERSION}"`
+        }
+      }
+    })
   ] : [
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
     new webpack.HotModuleReplacementPlugin(),
     new HtmlWebpackPlugin({
       template: "./index.html"
-    })
+    }),
+    new webpack.DefinePlugin({
+      process: {
+        env: {
+          CLIENT_VERSION: `"${CLIENT_VERSION}"`,
+          PACKAGING_VERSION: `"${PACKAGING_VERSION}"`
+        }
+      }
+    })  
   ],
   devServer: {
     contentBase: "./dist",
