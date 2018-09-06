@@ -1,7 +1,9 @@
 const knex = require("./knex");
 const debug = require('./debug');
 const failInvocation = require('./failInvocation');
-
+// Don't timeout based on the lambda or worker timeout exactly
+// sometimes there is some communication overhead and the results will still come in
+const BUFFER = 1000 * 5;
 // close and status=failed invocations that run past their timeout or worker_timeout
 
 const checkTimeouts = async () => {
@@ -18,7 +20,7 @@ const checkTimeouts = async () => {
     } else {
       // check whether exceeded timeout or worker_timeout
       const timeout = func.workerTimeout * 60 * 1000 || func.timeout * 1000;
-      const shouldBeCompletedBy = new Date(new Date(invocation.requestedAt).getTime() + timeout)
+      const shouldBeCompletedBy = new Date(new Date(invocation.requestedAt).getTime() + timeout + BUFFER)
       if (shouldBeCompletedBy < new Date()) {
         await failInvocation(invocation.uuid, `Invocation timeout of ${timeout / 1000 / 60} minutes exceeded`);
       } else {
