@@ -9,6 +9,13 @@ import { connect, Provider } from 'react-redux';
 import ReduxThunk from "redux-thunk";
 import IconButton from "@material-ui/core/IconButton";
 import CloseIcon from "@material-ui/icons/Close";
+import JssProvider from 'react-jss/lib/JssProvider';
+import { create } from 'jss';
+import { createGenerateClassName, jssPreset } from '@material-ui/core/styles';
+
+const generateClassName = createGenerateClassName();
+const jss = create(jssPreset());
+
 // const esriUtils = require('@esri/arcgis-to-geojson-utils');
 // const proj = require('@turf/projection');
 
@@ -202,7 +209,9 @@ const init = async clients => {
   const Container = connect(mapStateToProps, mapDispatchToProps, null, {withRef: true})(App);
   ReactDOM.render(
     <Provider store={store}>
-      <Container ref={(element) => reportSidebar = element.getWrappedInstance()} />
+      <JssProvider jss={jss} generateClassName={generateClassName}>
+        <Container ref={(element) => reportSidebar = element.getWrappedInstance()} />
+      </JssProvider>
     </Provider>,
     newDiv
   )

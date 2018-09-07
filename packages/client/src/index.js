@@ -8,7 +8,7 @@ import ReportClientLoader from "./loader";
 import ExampleSelect from "./components/ExampleSelect";
 import FileDownloadCard from "./components/FileDownloadCard";
 import HumanizedDuration from "./components/HumanizedDuration";
-import {CLIENT_VERSION, PACKAGING_VERSION} from './versions.js';
+import {CLIENT_VERSION, PACKAGING_VERSION, versionSatisfied} from './versions.js';
 
 import clientsReducer from "./redux/reducers/clients";
 import resultsReducer from "./redux/reducers/results";
@@ -78,5 +78,6 @@ export {
   REPORTING_STATUS_UPDATE,
   openEventSource,
   // utils
-  slugify
+  slugify,
+  versionSatisfied
 };
