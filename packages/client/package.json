@@ -1,6 +1,6 @@
 {
   "name": "@seasketch-sls-geoprocessing/client",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "description": "Client react & redux modules for SeaSketch reports",
   "main": "src/index.js",
   "module": "src/index.js",
