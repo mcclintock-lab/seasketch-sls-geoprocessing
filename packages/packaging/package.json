@@ -24,6 +24,7 @@
     "minimist": "^1.2.0",
     "ora": "^3.0.0",
     "remote-origin-url": "^1.0.0",
+    "rmfr": "^2.0.0",
     "webpack-cli": "^3.1.0",
     "webpack-dev-server": "^3.1.7"
   },
