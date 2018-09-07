@@ -1,6 +1,6 @@
 {
   "name": "@seasketch-sls-geoprocessing/client",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "Client react & redux modules for SeaSketch reports",
   "main": "src/index.js",
   "module": "src/index.js",
@@ -33,7 +33,7 @@
     "@babel/polyfill": "^7.0.0",
     "@babel/preset-env": "^7.0.0",
     "@babel/preset-react": "^7.0.0",
-    "@seasketch-sls-geoprocessing/packaging": "^2.0.1"
+    "@seasketch-sls-geoprocessing/packaging": "^2.0.2"
   },
   "peerDependencies": {
     "@material-ui/core": "^1.5.1",
