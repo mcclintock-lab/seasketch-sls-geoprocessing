@@ -6,7 +6,8 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "bin/build-legacy-shim",
-    "deploy": "npm run build && bin/deploy-legacy-shim"
+    "deploy": "npm run build && bin/deploy-legacy-shim",
+    "start": "NODE_ENV=production webpack-dev-server"
   },
   "repository": {
     "type": "git",
