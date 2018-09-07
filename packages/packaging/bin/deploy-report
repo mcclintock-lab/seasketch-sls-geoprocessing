@@ -13,8 +13,28 @@ const package = require(path.join(process.cwd(), 'package.json'));
 const REQUIRED_CLIENT_VERSION = package.dependencies['@seasketch-sls-geoprocessing/client'];
 const REQUIRED_PACKAGING_VERSION = package.dependencies['@seasketch-sls-geoprocessing/packaging'];
 const ora = require('ora');
+const latestVersion = require('latest-version');
+const semver = require('semver');
+const promptly = require('promptly');
 
 const main = async () => {
+  const latestClientVersion = await latestVersion('@seasketch-sls-geoprocessing/client');
+  const latestPackagingVersion = await latestVersion('@seasketch-sls-geoprocessing/packaging');
+  let satisfied = true;
+  if (!semver.satisfies(latestClientVersion, REQUIRED_CLIENT_VERSION)) {
+    satisfied = false;
+    console.log(`@seasketch-sls-geoprocessing/client ${REQUIRED_CLIENT_VERSION} is incompatible with latest version on npm (${latestClientVersion})`);
+  }
+  if (!semver.satisfies(latestPackagingVersion, REQUIRED_PACKAGING_VERSION)) {
+    console.log(`@seasketch-sls-geoprocessing/packaging ${REQUIRED_PACKAGING_VERSION} is incompatible with latest version on npm (${latestPackagingVersion})`);
+    satisfied = false;
+  }
+  if (!satisfied) {
+    const answer = await promptly.confirm('These dependencies should be updated before proceeding. Do you still want to deploy?');
+    if (!answer) {
+      process.exit();
+    }
+  }
   const exports = await cloudformation.listExports({}).promise();
   const bucket = exports.Exports.find(e => e.Name === "ReportClientCode").Value;
   const queue = exports.Exports.find(e => e.Name === SQS_EXPORT).Value;
@@ -64,6 +84,7 @@ const main = async () => {
     })
     .promise();
   spinner.succeed();
+  console.log(`View this project at https://analysis.seasketch.org/${sls.service}`);
 }
 
 main();
