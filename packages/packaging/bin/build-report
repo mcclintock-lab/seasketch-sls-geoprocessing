@@ -46,7 +46,7 @@ const examples = path.resolve(process.cwd(), "examples/");
   });
   
   require(`@babel/register`)({
-    ignore: [/node_modules/],
+    ignore: [/node_modules\/(?!@seasketch-sls-geoprocessing)/]
     // babelrc: false,
     plugins: ["@babel/plugin-proposal-class-properties"],
     presets: [

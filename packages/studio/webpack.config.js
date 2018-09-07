@@ -69,7 +69,7 @@ module.exports = (entry, examples) => {
       rules: [
         {
           test: /\.js$/,
-          exclude: /node_modules\/(?!@seasketch-sls-geoprocessing\/studio)/,
+          exclude: /node_modules\/(?!@seasketch-sls-geoprocessing)/,
           use: {
             loader: `babel-loader`,
             options: babel
