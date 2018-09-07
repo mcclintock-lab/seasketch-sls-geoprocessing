@@ -9,9 +9,11 @@ const BUCKET = "cdn.seasketch.org";
 console.log('pushing to s3...');
 
 fs.readdir("./dist/", async function(err, items) {
+  let main = null;
   for (let item of items) {
     if (/\.js$/.test(item)) {
       const spinner = ora(`https://cdn.seasketch.org/${item}`).start();
+      main = `https://cdn.seasketch.org/${item}`;
       let params = {
         Body: fs.readFileSync(`./dist/${item}`),
         Bucket: BUCKET,
@@ -31,4 +33,6 @@ fs.readdir("./dist/", async function(err, items) {
       spinner.succeed();
     }
   }
+  console.log(`Don't forget to update seasketch.org!`)
+  console.log(`jake config:setrecord['nextReportShim,${main}']`)
 });
