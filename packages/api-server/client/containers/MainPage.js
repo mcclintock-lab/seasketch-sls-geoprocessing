@@ -39,7 +39,7 @@ class MainPage extends React.Component {
                 <TableCell>last updated</TableCell>
                 <TableCell>functions</TableCell>
                 <TableCell>clients</TableCell>
-                <TableCell>dependency version</TableCell>
+                <TableCell>client version</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
