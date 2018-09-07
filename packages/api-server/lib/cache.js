@@ -54,6 +54,8 @@ module.exports = {
       const invocations = await knex("invocations")
         .where("requested_at", ">=", sketch.editedAt.toISOString())
         .where("sketch_id", sketch._id.toString())
+        .where("project", project)
+        .where("function", func)
         .whereNot("status", "failed")
         .limit(1);
       if (invocations.length) {
