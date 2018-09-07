@@ -10,6 +10,7 @@ import TableHead from '@material-ui/core/TableHead';
 import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import InvocationsList from '../components/InvocationsList';
+import semver from 'semver';
 
 const styles = theme => ({
   root: {
@@ -38,16 +39,22 @@ class MainPage extends React.Component {
                 <TableCell>last updated</TableCell>
                 <TableCell>functions</TableCell>
                 <TableCell>clients</TableCell>
+                <TableCell>dependency version</TableCell>
               </TableRow>
             </TableHead>
             <TableBody>
               {projects.map(({name, clients, updatedAt, functions}) => {
+                let validVersions = false;
+                if (clients && clients.modules.length) {
+                  validVersions = semver.satisfies(SeaSketchReportClient.CLIENT_VERSION, clients.requiredClientVersion) && semver.satisfies(SeaSketchReportClient.PACKAGING_VERSION, clients.requiredPackagingVersion);
+                }
                 return (
                   <TableRow key={name} style={{ cursor: 'pointer' }} onClick={() => history.push(`/${name}`)}>
                     <TableCell>{name}</TableCell>
                     <TableCell>{updatedAt ? updatedAt.toLocaleString() : ''}</TableCell>
                     <TableCell>{functions.length}</TableCell>
                     <TableCell>{clients ? clients.modules.length : 0}</TableCell>
+                    <TableCell style={{color: validVersions ? null : 'red'}}>{clients ? clients.requiredClientVersion || clients.requiredPackagingVersion : 0}</TableCell>
                   </TableRow>
                 );
               })}
