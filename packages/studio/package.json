@@ -1,6 +1,6 @@
 {
   "name": "@seasketch-sls-geoprocessing/studio",
-  "version": "1.0.7",
+  "version": "2.0.0",
   "description": "Local development environment for SeaSketch reports",
   "main": "index.js",
   "bin": {
