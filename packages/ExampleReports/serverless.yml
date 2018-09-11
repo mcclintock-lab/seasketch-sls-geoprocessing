@@ -32,3 +32,12 @@ functions:
       - http:
           method: post
           path: area
+  tin:
+    handler: functions/tin/index.handler
+    description: Add your description of tin here
+    timeout: 4
+    memorySize: 128
+    events:
+      - http:
+          method: post
+          path: tin

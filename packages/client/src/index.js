@@ -12,6 +12,7 @@ import {CLIENT_VERSION, PACKAGING_VERSION, versionSatisfied} from './versions.js
 
 import clientsReducer from "./redux/reducers/clients";
 import resultsReducer from "./redux/reducers/results";
+import reportSidebarsReducer from './redux/reducers/reportSidebars';
 import {fromJSON as invocationFromJSON} from "./redux/utils";
 import {
   fetchClients,
@@ -22,6 +23,14 @@ import {
   REPORTING_LOG_EVENT,
   REPORTING_STATUS_UPDATE,
   openEventSource,
+  TOGGLE_SIDEBAR_POSITION,
+  CLOSE_REPORT_SIDEBAR,
+  OPEN_REPORT_SIDEBAR,
+  CHANGE_REPORT_SIDEBAR_TAB,
+  toggleSidebarPosition,
+  closeReportSidebar,
+  openReportSidebar,
+  changeReportSidebarTab
 } from "./redux/actions";
 
 const requiredProps = ["sources", "title"];
@@ -68,6 +77,7 @@ export {
   clientsReducer,
   resultsReducer,
   invocationFromJSON,
+  reportSidebarsReducer,
   // actions
   fetchClients,
   fetchResults,
@@ -77,6 +87,14 @@ export {
   REPORTING_LOG_EVENT,
   REPORTING_STATUS_UPDATE,
   openEventSource,
+  TOGGLE_SIDEBAR_POSITION,
+  CLOSE_REPORT_SIDEBAR,
+  OPEN_REPORT_SIDEBAR,
+  CHANGE_REPORT_SIDEBAR_TAB,
+  toggleSidebarPosition,
+  closeReportSidebar,
+  openReportSidebar,
+  changeReportSidebarTab,
   // utils
   slugify,
   versionSatisfied

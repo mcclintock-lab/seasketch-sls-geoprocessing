@@ -170,3 +170,35 @@ export const openEventSource = (id, source, dispatch, url) => {
     }
   };
 };
+
+// Report Sidebars
+
+export const TOGGLE_SIDEBAR_POSITION = "TOGGLE_SIDEBAR_POSITION";
+export const CLOSE_REPORT_SIDEBAR = "CLOSE_REPORT_SIDEBAR";
+export const OPEN_REPORT_SIDEBAR = "OPEN_REPORT_SIDEBAR";
+export const CHANGE_REPORT_SIDEBAR_TAB = "CHANGE_REPORT_SIDEBAR_TAB";
+
+export const toggleSidebarPosition = (id) => ({
+  type: TOGGLE_SIDEBAR_POSITION,
+  id
+});
+
+export const closeReportSidebar = (id) => {
+  return {
+    type: CLOSE_REPORT_SIDEBAR,
+    id
+  }
+}
+
+export const openReportSidebar = (sketch, client, position) => ({
+  type: OPEN_REPORT_SIDEBAR,
+  client,
+  sketch,
+  position
+});
+
+export const changeReportSidebarTab = (id, tab) => ({
+  type: CHANGE_REPORT_SIDEBAR_TAB,
+  id,
+  tab
+});

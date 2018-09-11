@@ -105,7 +105,7 @@ class ReportSidebar extends React.Component {
     }, {});
     var ReportTab;
     if (client && client.tabs && client.tabs.length) {
-      ReportTab = client.tabs[0];
+      ReportTab = client.tabs[selectedTab];
     }
 
 
@@ -171,7 +171,7 @@ class ReportSidebar extends React.Component {
               )}
           </Toolbar>
           {client && client.tabs && sketch ? (
-            <Tabs value={selectedTab}>
+            <Tabs value={selectedTab} onChange={this.props.onChangeTab}>
               {client.tabs.map(client => (
                 <Tab key={client.title} label={client.title} />
               ))}
