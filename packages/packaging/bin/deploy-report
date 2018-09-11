@@ -16,6 +16,8 @@ const ora = require('ora');
 const latestVersion = require('latest-version');
 const semver = require('semver');
 const promptly = require('promptly');
+const gzipSize = require('gzip-size');
+const prettyBytes = require('pretty-bytes');
 
 const main = async () => {
   const latestClientVersion = await latestVersion('@seasketch-sls-geoprocessing/client');
@@ -63,6 +65,7 @@ const main = async () => {
   }
 
   const spinner = ora(`registering with https://analysis.seasketch.org`).start();
+  const bundleSize = fs.statSync(`${process.cwd()}/dist/${bundleName}`).size;
   const metadata = {
     type: 'ClientMetadata',
     project: sls.service,
@@ -74,7 +77,7 @@ const main = async () => {
     clients: modules,
     git: remoteOriginUrl.sync(`${process.cwd()}/.git/config`),
     // TODO: point at seasketch bundle
-    bundleSize: fs.statSync(`${process.cwd()}/dist/${bundleName}`).size
+    bundleSize
   }
   const response = await sqs
     .sendMessage({
@@ -84,6 +87,8 @@ const main = async () => {
     })
     .promise();
   spinner.succeed();
+  const bundleSizeGzipped = gzipSize.sync(fs.readFileSync(`${process.cwd()}/dist/${bundleName}`));
+  console.log(`Bundle size is ${prettyBytes(bundleSize)}, ${prettyBytes(bundleSizeGzipped)} gzipped`);
   console.log(`View this project at https://analysis.seasketch.org/${sls.service}`);
 }
 
