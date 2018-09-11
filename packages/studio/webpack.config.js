@@ -30,7 +30,8 @@ module.exports = (entry, examples) => {
         CLIENT_VERSION: `"${CLIENT_VERSION}"`,
         PACKAGING_VERSION: `"${PACKAGING_VERSION}"`,
         REQUIRED_CLIENT_VERSION: `"${REQUIRED_CLIENT_VERSION}"`,
-        REQUIRED_PACKAGING_VERSION: `"${REQUIRED_PACKAGING_VERSION}"`
+        REQUIRED_PACKAGING_VERSION: `"${REQUIRED_PACKAGING_VERSION}"`,
+        API_HOST: `"http://localhost:3009"`
       }
     }
   });

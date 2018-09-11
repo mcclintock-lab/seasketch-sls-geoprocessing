@@ -1,11 +1,8 @@
 import loader from "../loader";
 import uuid from "uuid/v4";
 
-// TODO: develop a better scheme to determine analysis endpoint
-export const API_HOST =
-  true || process.env.NODE_ENV === "production"
-    ? "https://analysis.seasketch.org"
-    : `${window.location.protocol}//${window.location.host}`;
+const API_HOST = process.env.API_HOST || "https://analysis.seasketch.org";
+export { API_HOST };
 export const REPORTING_FETCH_CLIENT = "REPORTING_FETCH_CLIENT";
 export const REPORTING_CLIENT_LOADED = "REPORTING_CLIENT_LOADED";
 export const REPORTING_CLIENT_ERROR = "REPORTING_CLIENT_ERROR";
@@ -73,6 +70,9 @@ const fetchSource = async (source, sketch, dispatch) => {
   });
   try {
     let url = `${API_HOST}/api/${project}/functions/${func}`;
+    if (/localhost:3009/.test(API_HOST)) {
+      url = `${API_HOST}/tasks/${func}`;
+    }
     const isPOST = sketch.properties && sketch.properties.sketchClassId;
     if (isPOST) {
       url += `?id=${sketch.properties.id}`;
@@ -87,15 +87,19 @@ const fetchSource = async (source, sketch, dispatch) => {
     const response = await fetch(url, opts);
     if (response.ok) {
       const data = await response.json();
+      if (/offline/.test(data.requestId)) {
+        data.status = "complete";
+        data.project = project;
+        data.function = func;
+      } else if(!data.closed) {
+        openEventSource(id, source, dispatch, data.events);
+      }
       dispatch({
         type: REPORTING_STATUS_UPDATE,
         source,
         id,
         status: fromJSON(data)
       });
-      if (!data.closed) {
-        openEventSource(id, source, dispatch, data.events);
-      }
     } else {
       dispatch({
         type: REPORTING_STATUS_UPDATE,
@@ -170,3 +174,66 @@ export const openEventSource = (id, source, dispatch, url) => {
     }
   };
 };
+
+// Report Sidebars
+
+export const TOGGLE_SIDEBAR_POSITION = "TOGGLE_SIDEBAR_POSITION";
+export const CLOSE_REPORT_SIDEBAR = "CLOSE_REPORT_SIDEBAR";
+export const OPEN_REPORT_SIDEBAR = "OPEN_REPORT_SIDEBAR";
+export const CHANGE_REPORT_SIDEBAR_TAB = "CHANGE_REPORT_SIDEBAR_TAB";
+export const CLEAR_SIDEBARS = "CLEAR_REPORT_SIDEBARS";
+
+export const toggleSidebarPosition = (id) => ({
+  type: TOGGLE_SIDEBAR_POSITION,
+  id
+});
+
+export const closeReportSidebar = (id) => {
+  return {
+    type: CLOSE_REPORT_SIDEBAR,
+    id
+  }
+}
+
+export const openReportSidebar = (sketch, client, position, tab=0, menuItems=[]) => {
+  return (dispatch, getState) => {
+    dispatch({
+      type: OPEN_REPORT_SIDEBAR,
+      client,
+      sketch,
+      position,
+      tab,
+      menuItems
+    });
+    const sources = client.tabs[tab].sources;
+    fetchRequiredSources(sources, sketch, getState(), dispatch);
+  }
+};
+
+export const changeReportSidebarTab = (id, tab) => {
+  return (dispatch, getState) => {
+    dispatch({
+      type: CHANGE_REPORT_SIDEBAR_TAB,
+      id,
+      tab
+    });
+    const sidebar = getState().reportSidebars[id]
+    const sources = sidebar.client.tabs[tab].sources;
+    fetchRequiredSources(sources, sidebar.sketch, getState(), dispatch);
+  }
+};
+
+
+const fetchRequiredSources = (sources, sketch, state, dispatch) => {
+  const results = state.results;
+  for (let source of sources) {
+    let r = results[[source, sketch.properties.id].join("-")];
+    if (!r || r.status === 'failed') {
+      fetchSource(source, sketch, dispatch);
+    }
+  }
+}
+
+export const clearSidebars = () => ({
+  type: CLEAR_SIDEBARS
+});

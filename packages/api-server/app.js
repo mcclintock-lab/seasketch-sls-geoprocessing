@@ -46,6 +46,7 @@ app.use(cookieParser());
 app.use(express.static(path.join(__dirname, 'public')));
 app.use(cors({credentials: true, origin: [
   "http://localhost:3000", 
+  "https://localhost:3001",
   "https://www.seasketch.org", 
   "https://seasketch.org"
 ]}));

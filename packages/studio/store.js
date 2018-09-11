@@ -18,7 +18,7 @@ const persistConfig = {
   storage,
   transforms: [saveSubsetFilter],
   stateReconciler: autoMergeLevel2,
-  blacklist: ['results']
+  blacklist: ['results', 'reportSidebars']
 }
 
 const persistedReducer = persistReducer(persistConfig, reducer)

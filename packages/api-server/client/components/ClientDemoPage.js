@@ -6,13 +6,16 @@ import Map from "./MapInput";
 import { connect } from "react-redux";
 import CircularProgress from "@material-ui/core/CircularProgress";
 import {
-  fetchResults,
   fetchClients,
-  ReportClientLoader,
   ExampleSelect,
-  ReportSidebar
+  ReportSidebar,
+  getResults,
+  changeReportSidebarTab,
+  openReportSidebar,
+  closeReportSidebar,
+  clearSidebars
 } from "@seasketch-sls-geoprocessing/client";
-import uuid from 'uuid/v4';
+import uuid from "uuid/v4";
 
 const styles = theme => ({
   title: {},
@@ -46,6 +49,11 @@ class ClientDemoPage extends React.Component {
     }
   };
 
+  openSidebar(sketch, client) {
+    this.props.clearSidebars();
+    this.props.openReportSidebar(sketch, client, 0, 0);
+  }
+
   componentDidUpdate(prevProps) {
     if (
       !this.props.client &&
@@ -54,50 +62,45 @@ class ClientDemoPage extends React.Component {
     ) {
       this.fetchClient();
     }
-    if (!prevProps.examples && !!this.props.examples && this.props.examples.length) {
+    if (
+      !prevProps.examples &&
+      !!this.props.examples &&
+      this.props.examples.length
+    ) {
       const example = this.props.examples[0];
       this.setState({
         exampleName: example.name,
         sketch: example.feature
       });
-      this.props.fetchResults(this.props.client.tabs[this.props.selectedTab].sources, example.feature);
+      this.openSidebar(example.feature, this.props.client);
     }
   }
 
-  onInput = (feature) => {
+  onInput = feature => {
     feature.properties = {
       name: "DrawnFeature",
       id: uuid()
-    }
+    };
     this.setState({
       sketch: feature
     });
-    this.props.fetchResults(this.props.client.tabs[this.props.selectedTab].sources, feature);
-  }
+    this.openSidebar(feature, this.props.client);
+  };
 
-  fetchResults(sketch, sources) {
-    this.props.fetchResults(
-      this.props.example.feature,
-      this.props.client.tabs[this.props.selectedTab].sources
-    );
-  }
-
-  onExampleChange = (e) => {
-    const example = this.props.examples.find((ex) => ex.name === e.target.value);
+  onExampleChange = e => {
+    const example = this.props.examples.find(ex => ex.name === e.target.value);
     this.setState({
       sketch: example.feature,
       exampleName: e.target.value
     });
-    this.props.fetchResults(this.props.client.tabs[this.props.selectedTab].sources, example.feature);
-  }
+    this.openSidebar(example.feature, this.props.client);
+  };
 
   render() {
     const {
       project,
-      client,
-      selectedTab,
       classes,
-      clientError,
+      reportSidebars,
       examples,
       getResults
     } = this.props;
@@ -106,40 +109,64 @@ class ClientDemoPage extends React.Component {
     }
     var example = null;
     if (this.state.exampleName) {
-      example = examples.find((e) => e.name === this.state.exampleName).feature;
+      example = examples.find(e => e.name === this.state.exampleName).feature;
     }
     return (
       <div className={classes.root}>
-        <ExampleSelect style={{left: 60}} examples={examples || []} example={this.state.exampleName} onChange={this.onExampleChange} allowBlank noLabel />
-        <Map example={example} initialCenter={project.center} initialZoom={project.zoom} onDrawModeChange={this.onDrawModeChange} onInput={this.onInput} />
-        <ReportSidebar
-          client={client}
-          sketch={this.state.sketch}
-          results={this.state.sketch ? getResults(client.tabs[selectedTab].sources, this.state.sketch) : null}
-          selectedTab={selectedTab}
-          clientError={clientError}
-          open
-          closeable={false}
-          menuItems={[
-            {
-              label: 'View logs',
-              onClick: () => { window.open(getResults(client.tabs[selectedTab].sources, this.state.sketch)[0].logPage, "_blank")}
-            },
-            {
-              label: 'Download GeoJSON',
-              onClick: () => { window.open(getResults(client.tabs[selectedTab].sources, this.state.sketch)[0].payload, "_blank")}
-            }
-          ]}
+        <ExampleSelect
+          style={{ left: 60 }}
+          examples={examples || []}
+          example={this.state.exampleName}
+          onChange={this.onExampleChange}
+          allowBlank
+          noLabel
         />
+        <Map
+          example={example}
+          initialCenter={project.center}
+          initialZoom={project.zoom}
+          onDrawModeChange={this.onDrawModeChange}
+          onInput={this.onInput}
+        />
+        {reportSidebars.map(({ selectedTab, sketch, client, position }) => {
+          const tab = client.tabs[selectedTab];
+          const results = getResults(sketch, tab.sources);
+          return (
+            <ReportSidebar
+              key={sketch.properties.id}
+              selectedTab={selectedTab}
+              onChangeTab={(e, tab) =>
+                this.props.onChangeTab(sketch.properties.id, tab)
+              }
+              sketch={sketch}
+              client={client}
+              position={position}
+              results={results}
+              selectedTab={selectedTab}
+              open
+              menuItems={[
+                {
+                  label: "View logs",
+                  onClick: () => {
+                    window.open(
+                      getResults(sketch, client.tabs[selectedTab].sources)[0].logPage,
+                      "_blank"
+                    );
+                  }
+                }
+              ]}
+            />
+          );
+        })}
       </div>
     );
   }
 
-  onDrawModeChange = (e) => {
-    if (e.mode === 'draw_polygon') {
-      this.setState({sketch: null, exampleName: ""});
+  onDrawModeChange = e => {
+    if (e.mode === "draw_polygon") {
+      this.setState({ sketch: null, exampleName: "" });
     }
-  }
+  };
 }
 
 const mapStateToProps = (state, ownProps) => {
@@ -162,29 +189,27 @@ const mapStateToProps = (state, ownProps) => {
     }
   }
   return {
+    reportSidebars: Object.keys(state.reportSidebars).map(
+      k => state.reportSidebars[k]
+    ),
     project,
     client,
     clientError,
     clientLoading: !client && !clientError && info,
     selectedTab: 0,
     examples,
-    getResults: (sources, sketch) => {
-      const out = [];
-      for (let source of sources) {
-        let r = state.results[[source, sketch.properties.id].join("-")];
-        if (r) {
-          out.push(r)
-        }
-      }
-      return out;
-    }
+    getResults: (sketch, sources) => getResults(sketch, sources, state.results)
   };
 };
 
 const mapDispatchToProps = (dispatch, ownProps) => ({
+  fetchClients: (id, url) => dispatch(fetchClients(id, url)),
   onExampleChange: e => dispatch(selectExample(e)),
-  fetchResults: (sketch, sources) => dispatch(fetchResults(sketch, sources)),
-  fetchClients: (id, url) => dispatch(fetchClients(id, url))
+  closeReportSidebar: id => dispatch(closeReportSidebar(id)),
+  openReportSidebar: (sketch, client, position) =>
+    dispatch(openReportSidebar(sketch, client, position)),
+  onChangeTab: (id, tab) => dispatch(changeReportSidebarTab(id, tab)),
+  clearSidebars: () => dispatch(clearSidebars())
 });
 
 export default connect(

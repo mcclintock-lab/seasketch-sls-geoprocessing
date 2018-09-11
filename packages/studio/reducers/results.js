@@ -5,7 +5,7 @@ export const getResults = (sketch, sources, items) => {
   for (let source of sources) {
     const project = source.split("-")[0];
     const func = source.split("-").pop();
-    const result = items.find((result) => (
+    const result = (items || []).find((result) => (
       result.sketchId === sketch.properties.id && 
       result.project === project && 
       result.function === func

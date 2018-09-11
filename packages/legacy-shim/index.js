@@ -46,7 +46,8 @@ const sketchToGeoJSON = (sketch) => {
 
 const reducers = combineReducers({
   clients: SeaSketchReportClient.clientsReducer,
-  results: SeaSketchReportClient.resultsReducer
+  results: SeaSketchReportClient.resultsReducer,
+  reportSidebars: SeaSketchReportClient.reportSidebarsReducer
 });
 
 class App extends React.Component {
@@ -76,70 +77,66 @@ class App extends React.Component {
     }
   }
 
-  close() {
-    this.setState({
-      client: null,
-      sketch: null,
-      open: false
-    })
-  }
-
   render() {
     const {
-      sketch,
-      project,
-      client,
-      selectedTab,
-      clientError,
-      open,
-      menuItems
-    } = this.state;
+      reportSidebars
+    } = this.props;
     const { getResults } = this.props; 
     return (
-      <ReportSidebar
-        style={{
-          position: 'absolute',
-          right: 0
-        }}
-        tabContentContainerStyle={{
-          height: "calc(100vh - 174px)"
-        }}
-        client={client}
-        sketch={sketch}
-        results={
-          sketch ? getResults(client.tabs[selectedTab].sources, sketch) : null
-        }
-        selectedTab={selectedTab}
-        clientError={clientError}
-        open={open}
-        showCloseButton={true}
-        rightButtons={[
-          <IconButton
-            style={{marginLeft: -4}}
-            key="close"
-            aria-owns={"menu-appbar"}
-            aria-haspopup="false"
-            onClick={() => this.close()}
-            color="inherit"
-            className="nextReportsCloseButton"
-          >
-            <CloseIcon />
-          </IconButton>
-        ]}
-        closeable={true}
-        menuItems={[
-          ...menuItems,
-          {
-            label: "View logs",
-            onClick: () => {
-              window.open(
-                getResults(client.tabs[selectedTab].sources, sketch)[0].logPage,
-                "_blank"
-              );
-            }
-          }
-        ]}
-      />
+      <div>
+        {reportSidebars.map(({ selectedTab, sketch, client, position, menuItems }) => {
+          const tab = client.tabs[selectedTab];
+          const results = getResults(sketch, tab.sources);
+          return (
+            <ReportSidebar
+              style={{
+                position: 'absolute',
+                right: 0
+              }}
+              tabContentContainerStyle={{
+                height: "calc(100vh - 174px)"
+              }}
+              key={sketch.properties.id}
+              selectedTab={selectedTab}
+              onChangeTab={(e, tab) =>
+                this.props.onChangeTab(sketch.properties.id, tab)
+              }
+              sketch={sketch}
+              client={client}
+              position={position}
+              results={results}
+              selectedTab={selectedTab}
+              open
+              rightButtons={[
+                <IconButton
+                  style={{marginLeft: -4}}
+                  key="close"
+                  aria-owns={"menu-appbar"}
+                  aria-haspopup="false"
+                  onClick={() => this.props.clearSidebars()}
+                  color="inherit"
+                  className="nextReportsCloseButton"
+                >
+                  <CloseIcon />
+                </IconButton>
+              ]}
+              closeable={true}
+              menuItems={[
+                ...menuItems,
+                {
+                  label: "View logs",
+                  onClick: () => {
+                    window.open(
+                      getResults(sketch, client.tabs[selectedTab].sources)[0].logPage,
+                      "_blank"
+                    );
+                  }
+                }
+              ]}
+            />
+          );
+        })}
+      </div>
     );
   }
 }
@@ -164,25 +161,13 @@ const init = async clients => {
     if (!client) {
       throw new Error(`Could not find client ${clientName} in ${project}`);
     }
-    reportSidebar.open({sketch, project, client, menuItems});
+    store.dispatch(SeaSketchReportClient.clearSidebars());
+    store.dispatch(SeaSketchReportClient.openReportSidebar(sketchToGeoJSON(sketch), client, 0, 0, menuItems))
   }
 
   window.SeaSketchReportClient.hideReport = () => {
-    reportSidebar.close()
+    store.dispatch(SeaSketchReportClient.clearSidebars());
   }
-
-  const getResults = (sources, sketch) => {
-    const state = store.getState();
-    const out = [];
-    for (let source of sources) {
-      let r = state.results[[source, sketch.properties.id].join("-")];
-      if (r) {
-        out.push(r)
-      }
-    }
-    return out;
-  }
-  
 
   // fetch clients
   for (var path of clients) {
@@ -195,15 +180,19 @@ const init = async clients => {
   document.body.appendChild(newDiv);
   const mapStateToProps = (state) => {
     return {
-      getResults,
-      results: state.results
+      reportSidebars: Object.keys(state.reportSidebars).map(
+        k => state.reportSidebars[k]
+      ),  
+      getResults: (sketch, sources) => SeaSketchReportClient.getResults(sketch, sources, state.results)
     }
   }
   const mapDispatchToProps = (dispatch) => {
     return {
       fetchResults: (sources, sketch) => {
         dispatch(SeaSketchReportClient.fetchResults(sources, sketch))
-      }
+      },
+      clearSidebars: () => dispatch(SeaSketchReportClient.clearSidebars()),
+      onChangeTab: (id, tab) => dispatch(SeaSketchReportClient.changeReportSidebarTab(id, tab))
     }
   }
   const Container = connect(mapStateToProps, mapDispatchToProps, null, {withRef: true})(App);

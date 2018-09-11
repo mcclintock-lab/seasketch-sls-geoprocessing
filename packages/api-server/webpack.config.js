@@ -78,7 +78,8 @@ module.exports = {
       process: {
         env: {
           CLIENT_VERSION: `"${CLIENT_VERSION}"`,
-          PACKAGING_VERSION: `"${PACKAGING_VERSION}"`
+          PACKAGING_VERSION: `"${PACKAGING_VERSION}"`,
+          API_HOST: `"https://localhost:3001"`
         }
       }
     })  

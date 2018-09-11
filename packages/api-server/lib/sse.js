@@ -83,11 +83,7 @@ class SSEventEmitter {
       if (msg.payload.uuid !== this.invocationId) {
         return;
       }
-      const status = msg.payload;
-      this.sendStatus(asInvocation(Object.keys(status).reduce((obj, key) => {
-        obj[camelcase(key)] = status[key]
-        return obj;
-      }, {})));
+      this.sendStatus();
     } else if (msg.channel === 'invocation_log') {
       if (msg.payload.request_id === this.invocationId || msg.payload.request_id === this.requestId) {
         const event = {
