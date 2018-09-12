@@ -1,7 +1,7 @@
 const knex = require("./knex");
 const mongoose = require("mongoose");
 if (process.env.SEASKETCH_DB) {
-  console.log('connecting to seasketch db', process.env.SEASKETCH_DB);
+  console.log("connecting to seasketch db", process.env.SEASKETCH_DB);
   mongoose.connect(process.env.SEASKETCH_DB);
 }
 const Sketch = mongoose.model("Sketch", {
@@ -9,7 +9,8 @@ const Sketch = mongoose.model("Sketch", {
   attributes: Object,
   name: String,
   sketchclass: String,
-  preprocessedgeometryid: mongoose.Schema.Types.ObjectId
+  preprocessedgeometryid: mongoose.Schema.Types.ObjectId,
+  parentid: mongoose.Schema.Types.ObjectId
 });
 const LargeGeometry = mongoose.model("LargeGeometry", { geometry: Object });
 
@@ -19,69 +20,108 @@ const FormAttributeSchema = mongoose.model("FormAttribute", {
   exportid: String
 });
 
-const getStatus = require("./getStatus");
-const esriUtils = require('@esri/arcgis-to-geojson-utils');
-const proj = require('@turf/projection');
+const esriUtils = require("@esri/arcgis-to-geojson-utils");
+const proj = require("@turf/projection");
 
-const exportId = (f) => {
-  return f.exportid || f.name.toUpperCase()
-    .replace(/\s+/g, '_')
-    .replace(/\./g, '')
-    .replace("&", '') // messes with JOINs in ArcMap
-    .slice(0, 13)
-}
+const exportId = f => {
+  return (
+    f.get("exportid") ||
+    f
+      .get("name")
+      .toUpperCase()
+      .replace(/\s+/g, "_")
+      .replace(/\./g, "")
+      .replace("&", "") // messes with JOINs in ArcMap
+      .slice(0, 13)
+  );
+};
+
+const getProperties = async sketch => {
+  const attributeIds = Object.keys(sketch.attributes).filter((id) => mongoose.Types.ObjectId.isValid(id));
+  
+  const formAttributes = await FormAttributeSchema.find(
+    {
+      _id: { $in: attributeIds }
+    },
+    "exportid name _id"
+  );
+  const exportIds = formAttributes.reduce((m, a) => {
+    m[a._id.toString()] = exportId(a);
+    return m;
+  }, {});
+  const sketchAttributes = sketch.get("attributes");
+  const attrs = Object.keys(sketchAttributes).reduce((m, id) => {
+    m[exportIds[id]] = sketchAttributes[id];
+    return m;
+  }, {});
+  return {
+    ...attrs,
+    id: sketch._id.toString(),
+    createdAt: sketch.get("createdAt"),
+    deletedAt: sketch.get("deletedAt"),
+    updatedAt: sketch.get("editedAt"),
+    sketchClassId: sketch.get("sketchclass"),
+    parentId: sketch.get("parentid"),
+    NAME: sketch.get("name"),
+    staticGeometry: sketch.get("staticGeometry")
+  };
+};
+
+const getGeometry = async sketch => {
+  if (!sketch.get("preprocessedgeometryid")) {
+    throw new Error(`No preprocessedgeometryid for sketch ${sketch._id}`);
+  }
+  const geometry = await LargeGeometry.findById(
+    sketch.get("preprocessedgeometryid")
+  );
+  return proj.toWgs84(esriUtils.arcgisToGeoJSON(geometry.geometry.features[0]));
+};
+
+const getGeoJSON = async sketch => {
+  const properties = await getProperties(sketch);
+  if (sketch.get("preprocessedgeometryid")) {
+    // not collection
+    const geometry = await getGeometry(sketch);
+    return {
+      type: "Feature",
+      properties,
+      geometry
+    };
+  } else {
+    // is collection
+    const children = await Sketch.find({ parentid: sketch._id });
+    const features = await Promise.all(children.map(getGeoJSON));
+    return {
+      type: "FeatureCollection",
+      properties,
+      features
+    };
+  }
+};
 
 module.exports = {
   fetchCacheOrGeometry: async (project, func, sketchId) => {
     if (!process.env.SEASKETCH_DB) {
-      return {cache: false, geometry: false};
+      return { cache: false, geometry: false };
     }
-    const sketch = await Sketch.findById(
-      sketchId,
-      {
-        lean: false
-      }
-    );
+    const sketch = await Sketch.findById(sketchId, {
+      lean: false
+    });
     if (!sketch) {
       return { cache: null, geometry: null };
     } else {
-      const attributeIds = Object.keys(sketch.attributes);
-      const formAttributes = await FormAttributeSchema.find({_id: {$in: attributeIds}})
-      const exportIds = formAttributes.reduce((m, a) => {
-        m[a._id.toString()] = exportId(a);
-        return m;
-      }, {})
-      const invocations = await knex("invocations")
+      const invocation = await knex("invocations")
         .where("requested_at", ">=", sketch.editedAt.toISOString())
         .where("sketch_id", sketch._id.toString())
         .where("project", project)
         .where("function", func)
         .whereNot("status", "failed")
-        .limit(1);
-      if (invocations.length) {
-        const data = await getStatus(invocations[0].uuid);
-        return { cache: invocations[0] };
+        .first();
+      if (invocation) {
+        return { cache: invocation };
       } else {
-        const geometry = await LargeGeometry.findById(
-          sketch.preprocessedgeometryid
-        );
-        const geom = proj.toWgs84(esriUtils.arcgisToGeoJSON(geometry.geometry.features[0]));
-          attrs = Object.keys(sketch.get('attributes')).reduce((m, id) => {
-          m[exportIds[id]] = sketch.attributes[id];
-          return m;
-        }, {});
-        geom.properties = {
-          ...attrs,
-          id: sketch._id.toString(),
-          createdAt: sketch.get('createdAt'),
-          deletedAt: sketch.get('deletedAt'),
-          updatedAt: sketch.get('editedAt'),
-          sketchClassId: sketch.get('sketchclass'),
-          parentId: sketch.get('parentid'),
-          NAME: sketch.get('name'),
-          staticGeometry: sketch.get('staticGeometry')    
-        }
-        return { geometry:  geom};
+        const geojson = await getGeoJSON(sketch);
+        return { geometry: geojson };
       }
     }
   }
