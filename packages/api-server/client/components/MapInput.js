@@ -37,7 +37,9 @@ class MapInput extends React.Component {
     this.Draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {
-        polygon: true
+        polygon: true,
+        point: true,
+        line_string: true
       }
     });
     this.map.on('load', () => {
