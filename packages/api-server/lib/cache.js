@@ -74,7 +74,7 @@ const getGeometry = async sketch => {
   const geometry = await LargeGeometry.findById(
     sketch.get("preprocessedgeometryid")
   );
-  return proj.toWgs84(esriUtils.arcgisToGeoJSON(geometry.geometry.features[0]));
+  return proj.toWgs84(esriUtils.arcgisToGeoJSON(geometry.geometry.features[0])).geometry;
 };
 
 const getGeoJSON = async sketch => {
