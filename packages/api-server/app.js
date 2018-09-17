@@ -1,11 +1,10 @@
 require('dotenv').config()
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var wrap = require('async-middleware').wrap
-const fs = require('fs');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const wrap = require('async-middleware').wrap
 const cors = require('cors')
 const { fetchCacheOrGeometry } = require('./lib/cache');
 const knex = require('./lib/knex');
@@ -14,16 +13,39 @@ const SSEventEmitter = require('./lib/sse');
 const getStatus = require('./lib/getStatus');
 const asInvocation = require('./lib/asInvocation');
 const { initPriceMonitor } = require("./lib/ec2Pricing");
+const passport = require('passport');
+const BearerStrategy = require('passport-http-bearer').Strategy;
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const mongoose = require('./lib/mongoose');
 
-const { URL } = require('url');
-const HOST = process.env.HOST || "http://localhost:3001";
-const COST_PER_GB_SECOND = 0.00001667;
-const APPROX_SQS_COST = 0.00000040 * (// per message
-                        1 + // results message
-                        3 // log messages
-);
+if (!process.env.SECRET_KEY) {
+  throw new Error(`SECRET_KEY environment variable not set`);
+}
 
-const COST_PER_REQUEST = 0.0000002;
+passport.use('token', new BearerStrategy(
+  function(token, done) {
+    const contents = jwt.decode(token);
+    if (contents && contents.iss === 'https://analysis.seasketch.org') {
+      jwt.verify(token, process.env.SECRET_KEY, function(err, decoded) {
+        if (err) {
+          done(null, false);
+        } else {
+          if (decoded.superuser) {
+            decoded.token = token;
+            done(null, decoded);
+          } else {
+            done(null, false);
+          }
+        }
+      });
+    } else {
+      done(null, false);
+    }
+  }
+));
+
+
 require('./lib/sqsListeners').init((err) => {
   console.error(err);
   process.exit();
@@ -127,7 +149,7 @@ router.get('/api/projects', wrap( async (req, res) => {
   res.json(projects);
 }));
 
-router.get('/api/recent-invocations', wrap( async (req, res) => {
+router.get('/api/recent-invocations', passport.authorize('token', {session: false}), wrap( async (req, res) => {
   const invocations = await knex('invocations').select().whereNotIn('status', ['running','worker-booting', 'worker-running']).limit(10).orderBy('requested_at', 'desc');
   const outstanding = await knex('invocations').select().whereIn('status', ['running', 'worker-booting', 'worker-running']);
   res.json([...outstanding, ...invocations].map(asInvocation));
@@ -137,7 +159,7 @@ router.get('/api/:project/functions/:func/metadata', wrap( async (req, res) => {
   const {project, func} = req.params;
   const functions = await knex('functions').where('project_name', project).where('name', func).select();
   if (functions.length === 0) {
-    createError(404);
+    throw createError(404);
   } else {
     const f = functions[0];
     const stats = await knex('invocations')
@@ -176,7 +198,42 @@ router.get('/api/:project/functions/:func/payload/:invocationId', wrap( async (r
     res.set("Content-Disposition", `attachment; filename=${req.params.invocationId}.json`)
     res.json(records[0].payload);  
   } else {
-    createError(404);
+    throw createError(404);
+  }
+}));
+
+const User = mongoose.model("User", {
+  email: {type: String, unique: true},
+  hash: String,
+  salt: String,
+  likeABoss: Boolean
+});
+
+router.post('/api/getToken', wrap( async (req, res) => {
+  const {email, password} = req.body;
+  console.log(email, password);
+  if (email && password && email.length && password.length) {
+    console.log('401');
+    const user = await User.findOne({email});
+    if (!user || !user.likeABoss) {
+      throw createError(401);
+    } else {
+      console.log(user);
+      const authenticated = await bcrypt.compare(password, user.hash);
+      console.log('authenticated?', authenticated);
+      if (authenticated) {
+        const token = {
+          iss: "https://analysis.seasketch.org",
+          sub: user.email,
+          superuser: user.likeABoss
+        }
+        res.send(jwt.sign(token, process.env.SECRET_KEY));
+      } else {
+        throw createError(401);
+      }
+    }
+  } else {
+    throw createError(401);
   }
 }));
 
