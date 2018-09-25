@@ -17,3 +17,49 @@ export const fetchProjects = async (dispatch) => {
     // do nothing
   }
 }
+
+export const TOGGLE_REQUIRE_AUTH = "TOGGLE_REQUIRES_AUTHORIZATION";
+export const toggleRequireAuth = (id) => {
+  return (dispatch, getState) => {
+    const project = getState().projects.find((p) => p.name === id);
+    fetch("/api/project", {
+      method: "POST",
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.token}`
+      }),
+      body: JSON.stringify({
+        ...project,
+        requireAuth: !project.requireAuth
+      })
+    });
+    dispatch({
+      type: TOGGLE_REQUIRE_AUTH,
+      id
+    });
+  }
+};
+
+export const UPDATE_AUTHORIZED_CLIENTS = "UPDATE_AUTHORIZED_CLIENTS";
+
+export const updateAuthorizedClients = (id, clients) => {
+  return (dispatch, getState) => {
+    const project = getState().projects.find((p) => p.name === id);
+    fetch("/api/project", {
+      method: "POST",
+      headers: new Headers({
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${localStorage.token}`
+      }),
+      body: JSON.stringify({
+        ...project,
+        authorizedClients: clients
+      })
+    });
+    dispatch({
+      type: UPDATE_AUTHORIZED_CLIENTS,
+      id,
+      clients
+    });
+  }
+};

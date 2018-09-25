@@ -19,6 +19,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const mongoose = require('./lib/mongoose');
 const jwksClient = require('jwks-rsa');
+const debug = require('./lib/debug');
 
 if (!process.env.SECRET_KEY) {
   throw new Error(`SECRET_KEY environment variable not set`);
@@ -184,6 +185,7 @@ router.get('/api/:project/functions/:func/events/:invocationId', (req, res) => {
 
 router.get('/api/projects', wrap( async (req, res) => {
   const projects = await knex('projects').select()
+  console.log('projects', projects);
   const functions = await knex('functions').select();
   const stats = await knex('invocations')
     .select(knex.raw(`count(function) as invocations, project || '-geoprocessing-' || function as function_name, avg(max_memory_used_mb) as average_memory_use, percentile_cont(0.5) within group (order by billed_duration_ms) as billed_duration_50_percentile, percentile_cont(0.5) within group (order by duration) as duration_50_percentile`))
@@ -293,6 +295,21 @@ router.post('/api/getToken', wrap( async (req, res) => {
   } else {
     throw createError(401);
   }
+}));
+
+router.post('/api/project', passport.authorize('token', {session: false}), wrap( async (req, res) => {
+  const {requireAuth, authorizedClients, name} = req.body;
+  await knex('projects').update({requireAuth, authorizedClients}).where({name})
+  res.send('ok');
+}));
+
+const SeaSketchProject = mongoose.model("Project", {
+  name: String
+});
+
+router.get('/api/seasketch_projects', wrap( async (req, res) => {
+  const projects = await SeaSketchProject.find({}, {name: true});
+  res.json(projects);
 }));
 
 app.use(router);
