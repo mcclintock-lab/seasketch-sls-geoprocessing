@@ -18,10 +18,33 @@ const BearerStrategy = require('passport-http-bearer').Strategy;
 const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const mongoose = require('./lib/mongoose');
+const jwksClient = require('jwks-rsa');
 
 if (!process.env.SECRET_KEY) {
   throw new Error(`SECRET_KEY environment variable not set`);
 }
+
+const jclient = jwksClient({
+  jwksUri: 'https://www.seasketch.org/.well-known/jwks.json'
+});
+function getKey(header, callback){
+  jclient.getSigningKey(header.kid, function(err, key) {
+    var signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  });
+}
+
+// const options = {
+//   issuer: "seasketch-jwks",
+//   subject: "Chad",
+//   algorithms: "RS256"
+// }
+
+// jwt.verify(token, getKey, options, function(err, decoded) {
+//   expect(err).toBeFalsy();
+//   expect(decoded.admin).toBe('abc123');
+//   done();
+// });
 
 passport.use('token', new BearerStrategy(
   function(token, done) {
@@ -39,6 +62,9 @@ passport.use('token', new BearerStrategy(
           }
         }
       });
+    } else if (contents && contents.iss === 'https://www.seasketch.org') {
+      console.log(contents.iss, contents);
+      done(null, contents)
     } else {
       done(null, false);
     }
@@ -83,23 +109,48 @@ router.get('/api', function(req, res, next) {
   res.json({ title: 'Express' });
 });
 
+const applyAccessControl = (client, project, token)  => {
+   // superusers can do what they want, everyone else needs specific authorization
+   if (project.requireAuth) {
+    // check that request has a token and that token includes the project name 
+    if (!token){
+      res.send(`Must include valid Bearer Authorization header`, 403);
+      return false;
+    } else if (token.superuser) {
+      return true;
+    } else if (!token.project) {
+      res.send(`Authorization is missing project`, 403);
+      return false;
+    } else if (project.authorizedClients.indexOf(token.project) === -1) {
+      res.send(`Token source project is not in list of authorized clients`, 403);
+      return false;
+    } else if (req.user.client !== client) {
+      res.send(`Token is not for ${client}`, 403)
+      return false;
+    }
+  }
+  return true;
+}
+
 router.get('/api/:project/functions/:func', wrap( async (req, res) => {
   const {project, func} = req.params;
   if (req.query && req.query.id) {
-    const sketchId = req.query.id;
-    const {cache, geometry} = await fetchCacheOrGeometry(project, func, sketchId);
-    if (cache) {
-      res.redirect(`/api/${project}/functions/${func}/status/${cache.uuid}`);
-    } else {
-      if (!geometry) {
-        throw createError(404, "Could not find sketch with ID = " + sketchId);
+    const projectObject = await knex('projects').where({name: project}).first()
+    if (applyAccessControl(req.param('project'), projectObject, req.user, res)) {
+      const sketchId = req.query.id;
+      const {cache, geometry} = await fetchCacheOrGeometry(project, func, sketchId);
+      if (cache) {
+        res.redirect(`/api/${project}/functions/${func}/status/${cache.uuid}`);
       } else {
-        const invocationId = await invoke(project, func, geometry, sketchId);
-        res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
-      }
+        if (!geometry) {
+          throw createError(404, "Could not find sketch with ID = " + sketchId);
+        } else {
+          const invocationId = await invoke(project, func, geometry, sketchId);
+          res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
+        }
+      }  
     }
   } else {
-    // TODO: Replace with demo page
     throw createError(400, "Must provide a sketch id");
   }
 }));
@@ -107,8 +158,11 @@ router.get('/api/:project/functions/:func', wrap( async (req, res) => {
 router.post('/api/:project/functions/:func', wrap( async (req, res) => {
   const {project, func} = req.params;
   const geojson = req.body;
-  const invocationId = await invoke(project, func, geojson);
-  res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
+  const projectObject = await knex('projects').where({name: project}).first()
+  if (applyAccessControl(req.param('project'), projectObject, req.user, res)) {
+    const invocationId = await invoke(project, func, geojson);
+    res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
+  }
 }));
 
 router.get('/api/:project/functions/:func/status/:invocationId', wrap( async (req, res) => {
@@ -153,6 +207,10 @@ router.get('/api/recent-invocations', passport.authorize('token', {session: fals
   const invocations = await knex('invocations').select().whereNotIn('status', ['running','worker-booting', 'worker-running']).limit(10).orderBy('requested_at', 'desc');
   const outstanding = await knex('invocations').select().whereIn('status', ['running', 'worker-booting', 'worker-running']);
   res.json([...outstanding, ...invocations].map(asInvocation));
+}));
+
+router.get('/tokenInfo', passport.authorize('token', {session: false}), wrap( async (req, res) => {
+  res.json(req.user);
 }));
 
 router.get('/api/:project/functions/:func/metadata', wrap( async (req, res) => {
