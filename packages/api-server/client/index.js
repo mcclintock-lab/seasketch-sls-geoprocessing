@@ -22,8 +22,8 @@ if (process.env.NODE_ENV === 'development') {
 }
 
 
-fetchProjects(store.dispatch)
-setInterval(() => fetchProjects(store.dispatch), 10000);
+fetchProjects(store.dispatch, localStorage.token)
+setInterval(() => fetchProjects(store.dispatch, localStorage.token), 10000);
 
-fetchInvocations(store.dispatch)
-setInterval(() => fetchInvocations(store.dispatch), 10000);
+fetchInvocations(store.dispatch, localStorage.token);
+setInterval(() => fetchInvocations(store.dispatch, localStorage.token), 10000);

@@ -1,10 +1,10 @@
 require('dotenv').config()
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var wrap = require('async-middleware').wrap
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const wrap = require('async-middleware').wrap
 const cors = require('cors')
 const { fetchCacheOrGeometry } = require('./lib/cache');
 const knex = require('./lib/knex');
@@ -13,7 +13,110 @@ const SSEventEmitter = require('./lib/sse');
 const getStatus = require('./lib/getStatus');
 const asInvocation = require('./lib/asInvocation');
 const { initPriceMonitor } = require("./lib/ec2Pricing");
+const passport = require('passport');
+const BearerStrategy = require('passport-http-bearer').Strategy;
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const mongoose = require('./lib/mongoose');
 const rateLimit = require("express-rate-limit");
+
+const jwksClient = require('jwks-rsa')({
+  cache: true,
+  jwksUri: 'https://www.seasketch.org/.well-known/jwks.json'
+});
+
+if (!process.env.SECRET_KEY) {
+  throw new Error(`SECRET_KEY environment variable not set`);
+}
+
+passport.use('token', new BearerStrategy(
+  function(token, done) {
+    if (token) {
+      const data = jwt.decode(token, {complete: true});
+      if (data && data.header && data.payload) {
+        const contents = data.payload;
+        const header = data.header;
+        if (contents && contents.iss === 'https://analysis.seasketch.org') {
+          jwt.verify(token, process.env.SECRET_KEY, function(err, decoded) {
+            if (err) {
+              done(null, false);
+            } else {
+              if (decoded.superuser) {
+                decoded.token = token;
+                done(null, decoded);
+              } else {
+                done(null, false);
+              }
+            }
+          });
+        } else if (contents && contents.iss === 'https://www.seasketch.org') {
+          jwksClient.getSigningKey(header.kid, (err, key) => {
+            const signingKey = key.publicKey || key.rsaPublicKey;
+            jwt.verify(token, signingKey, function(err, decoded) {
+              if (err) {
+                done(null, false);
+              } else {
+                done(null, decoded);
+              }
+            });
+            // Now I can use this to configure my Express or Hapi middleware
+          });      
+        } else {
+          done(null, false);
+        }
+      } else {
+        done(null, false);
+      }  
+    } else {
+      done(null, false)
+    }
+  }
+));
+
+const optionalAuthMiddleware = function(req, res, next) {
+  passport.authenticate('token', function(err, user, info) {
+    req.authenticated = !! user;
+    req.user = user;
+    req.info = info;
+    next();
+  })(req, res, next);
+};
+
+const requireSuperuserMiddleware = (req, res, next) => {
+  optionalAuthMiddleware(req, res, async () => {
+    if (req.user && req.user.superuser) {
+      next(null);
+    } else {
+      next(createError(403, `Unauthorized`));
+    }
+  })
+}
+
+const requireProjectPermission = (req, res, next) => {
+  optionalAuthMiddleware(req, res, async () => {
+    if (req.user && req.user.superuser) {
+      next(null);
+    } else {
+      if (!req.params.project) {
+        next(createError(400, "No project specified"))
+      } else {
+        const project = await knex('projects').where({name: req.params.project}).first();
+        if (!project) {
+          next(createError(404, `No project named ${req.params.project}`));
+        } else {
+          if (!project.requireAuth) {
+            next(null);
+          } else if (req.user && req.user.project && project.authorizedClients.indexOf(req.user.project) !== -1) {
+            next(null);
+          } else {
+            next(createError(403, `Unauthorized`));
+          }
+        }
+      }  
+    }
+  })
+}
+
 
 require('./lib/sqsListeners').init((err) => {
   console.error(err);
@@ -42,8 +145,6 @@ app.use(cors({credentials: true, origin: [
   "https://seasketch.org"
 ]}));
 
-var router = express.Router();
-
 app.enable("trust proxy");
 
 const apiLimiter = rateLimit({
@@ -52,11 +153,14 @@ const apiLimiter = rateLimit({
 });
 
 const invocationLimiter = rateLimit({
-  windowMs: 1000 * 60, // 1 minute
-  max: 20
+  windowMs: 1000 * 60 * 10, // 10 minutes
+  max: 100,
+  message: "You may only request 100 reports every 10 minutes."
 });
 
 app.use("/api", apiLimiter);
+
+var router = express.Router();
 
 router.get('/healthcheck', function(req, res, next) {
   res.send("OK");
@@ -66,7 +170,7 @@ router.get('/api', function(req, res, next) {
   res.json({ title: 'Express' });
 });
 
-router.get('/api/:project/functions/:func', invocationLimiter, wrap( async (req, res) => {
+router.get('/api/:project/functions/:func', invocationLimiter, requireProjectPermission, wrap( async (req, res) => {
   const {project, func} = req.params;
   if (req.query && req.query.id) {
     const sketchId = req.query.id;
@@ -87,7 +191,7 @@ router.get('/api/:project/functions/:func', invocationLimiter, wrap( async (req,
   }
 }));
 
-router.post('/api/:project/functions/:func', invocationLimiter, wrap( async (req, res) => {
+router.post('/api/:project/functions/:func', invocationLimiter, requireProjectPermission, wrap( async (req, res) => {
   const {project, func} = req.params;
   const geojson = req.body;
   const invocationId = await invoke(project, func, geojson);
@@ -101,7 +205,7 @@ router.get('/api/:project/functions/:func/status/:invocationId', wrap( async (re
 }));
 
 router.get('/api/invocations/:invocationId', wrap( async (req, res) => {
-  const {project, func, invocationId} = req.params;
+  const {invocationId} = req.params;
   const data = await getStatus(invocationId);
   res.json(data);
 }));
@@ -111,12 +215,22 @@ router.get('/api/:project/functions/:func/events/:invocationId', (req, res) => {
   new SSEventEmitter(project, func, invocationId, req, res);
 });
 
-router.get('/api/projects', wrap( async (req, res) => {
-  const projects = await knex('projects').select()
+router.get('/api/projects', optionalAuthMiddleware, wrap( async (req, res) => {
+  let projects = await knex('projects').select()
   const functions = await knex('functions').select();
   const stats = await knex('invocations')
     .select(knex.raw(`count(function) as invocations, project || '-geoprocessing-' || function as function_name, avg(max_memory_used_mb) as average_memory_use, percentile_cont(0.5) within group (order by billed_duration_ms) as billed_duration_50_percentile, percentile_cont(0.5) within group (order by duration) as duration_50_percentile`))
     .groupBy('project', 'function')
+  if (req.user && req.user.superuser) {
+    // gets access to everything
+  } else if (req.user && req.user.admin) {
+    // gets access to protected project reports
+    projects = projects.filter((p) => !p.requireAuth || p.authorizedClients.indexOf(req.user.admin) !== -1)
+  } else {
+    // no access to any acl projects
+    // filter all requireAuth
+    projects = projects.filter((p) => !p.requireAuth)
+  }
   for (var p of projects) {
     p.functions = functions.filter((f) => f.projectName === p.name)
     for (var f of p.functions) {
@@ -132,7 +246,7 @@ router.get('/api/projects', wrap( async (req, res) => {
   res.json(projects);
 }));
 
-router.get('/api/recent-invocations', wrap( async (req, res) => {
+router.get('/api/recent-invocations', requireSuperuserMiddleware, wrap( async (req, res) => {
   const invocations = await knex('invocations').select().whereNotIn('status', ['running','worker-booting', 'worker-running']).limit(10).orderBy('requested_at', 'desc');
   const outstanding = await knex('invocations').select().whereIn('status', ['running', 'worker-booting', 'worker-running']);
   res.json([...outstanding, ...invocations].map(asInvocation));
@@ -142,7 +256,7 @@ router.get('/api/:project/functions/:func/metadata', wrap( async (req, res) => {
   const {project, func} = req.params;
   const functions = await knex('functions').where('project_name', project).where('name', func).select();
   if (functions.length === 0) {
-    createError(404);
+    throw createError(404);
   } else {
     const f = functions[0];
     const stats = await knex('invocations')
@@ -181,8 +295,54 @@ router.get('/api/:project/functions/:func/payload/:invocationId', wrap( async (r
     res.set("Content-Disposition", `attachment; filename=${req.params.invocationId}.json`)
     res.json(records[0].payload);  
   } else {
-    createError(404);
+    throw createError(404);
   }
+}));
+
+const User = mongoose.model("User", {
+  email: {type: String, unique: true},
+  hash: String,
+  salt: String,
+  likeABoss: Boolean
+});
+
+router.post('/api/getToken', wrap( async (req, res) => {
+  const {email, password} = req.body;
+  if (email && password && email.length && password.length) {
+    const user = await User.findOne({email});
+    if (!user || !user.likeABoss) {
+      throw createError(401);
+    } else {
+      const authenticated = await bcrypt.compare(password, user.hash);
+      if (authenticated) {
+        const token = {
+          iss: "https://analysis.seasketch.org",
+          sub: user.email,
+          superuser: user.likeABoss
+        }
+        res.send(jwt.sign(token, process.env.SECRET_KEY));
+      } else {
+        throw createError(401);
+      }
+    }
+  } else {
+    throw createError(401);
+  }
+}));
+
+router.post('/api/project', requireSuperuserMiddleware, wrap( async (req, res) => {
+  const {requireAuth, authorizedClients, name} = req.body;
+  await knex('projects').update({requireAuth, authorizedClients}).where({name})
+  res.send('ok');
+}));
+
+const SeaSketchProject = mongoose.model("Project", {
+  name: String
+});
+
+router.get('/api/seasketch_projects', wrap( async (req, res) => {
+  const projects = await SeaSketchProject.find({}, {name: true});
+  res.json(projects);
 }));
 
 app.use(router);
