@@ -1,11 +1,10 @@
 require('dotenv').config()
-var createError = require('http-errors');
-var express = require('express');
-var path = require('path');
-var cookieParser = require('cookie-parser');
-var logger = require('morgan');
-var wrap = require('async-middleware').wrap
-const fs = require('fs');
+const createError = require('http-errors');
+const express = require('express');
+const path = require('path');
+const cookieParser = require('cookie-parser');
+const logger = require('morgan');
+const wrap = require('async-middleware').wrap
 const cors = require('cors')
 const { fetchCacheOrGeometry } = require('./lib/cache');
 const knex = require('./lib/knex');
@@ -14,16 +13,66 @@ const SSEventEmitter = require('./lib/sse');
 const getStatus = require('./lib/getStatus');
 const asInvocation = require('./lib/asInvocation');
 const { initPriceMonitor } = require("./lib/ec2Pricing");
+const passport = require('passport');
+const BearerStrategy = require('passport-http-bearer').Strategy;
+const jwt = require('jsonwebtoken');
+const bcrypt = require('bcrypt');
+const mongoose = require('./lib/mongoose');
+const jwksClient = require('jwks-rsa');
+const debug = require('./lib/debug');
 
-const { URL } = require('url');
-const HOST = process.env.HOST || "http://localhost:3001";
-const COST_PER_GB_SECOND = 0.00001667;
-const APPROX_SQS_COST = 0.00000040 * (// per message
-                        1 + // results message
-                        3 // log messages
-);
+if (!process.env.SECRET_KEY) {
+  throw new Error(`SECRET_KEY environment variable not set`);
+}
 
-const COST_PER_REQUEST = 0.0000002;
+const jclient = jwksClient({
+  jwksUri: 'https://www.seasketch.org/.well-known/jwks.json'
+});
+function getKey(header, callback){
+  jclient.getSigningKey(header.kid, function(err, key) {
+    var signingKey = key.publicKey || key.rsaPublicKey;
+    callback(null, signingKey);
+  });
+}
+
+// const options = {
+//   issuer: "seasketch-jwks",
+//   subject: "Chad",
+//   algorithms: "RS256"
+// }
+
+// jwt.verify(token, getKey, options, function(err, decoded) {
+//   expect(err).toBeFalsy();
+//   expect(decoded.admin).toBe('abc123');
+//   done();
+// });
+
+passport.use('token', new BearerStrategy(
+  function(token, done) {
+    const contents = jwt.decode(token);
+    if (contents && contents.iss === 'https://analysis.seasketch.org') {
+      jwt.verify(token, process.env.SECRET_KEY, function(err, decoded) {
+        if (err) {
+          done(null, false);
+        } else {
+          if (decoded.superuser) {
+            decoded.token = token;
+            done(null, decoded);
+          } else {
+            done(null, false);
+          }
+        }
+      });
+    } else if (contents && contents.iss === 'https://www.seasketch.org') {
+      console.log(contents.iss, contents);
+      done(null, contents)
+    } else {
+      done(null, false);
+    }
+  }
+));
+
+
 require('./lib/sqsListeners').init((err) => {
   console.error(err);
   process.exit();
@@ -61,23 +110,48 @@ router.get('/api', function(req, res, next) {
   res.json({ title: 'Express' });
 });
 
+const applyAccessControl = (client, project, token)  => {
+   // superusers can do what they want, everyone else needs specific authorization
+   if (project.requireAuth) {
+    // check that request has a token and that token includes the project name 
+    if (!token){
+      res.send(`Must include valid Bearer Authorization header`, 403);
+      return false;
+    } else if (token.superuser) {
+      return true;
+    } else if (!token.project) {
+      res.send(`Authorization is missing project`, 403);
+      return false;
+    } else if (project.authorizedClients.indexOf(token.project) === -1) {
+      res.send(`Token source project is not in list of authorized clients`, 403);
+      return false;
+    } else if (req.user.client !== client) {
+      res.send(`Token is not for ${client}`, 403)
+      return false;
+    }
+  }
+  return true;
+}
+
 router.get('/api/:project/functions/:func', wrap( async (req, res) => {
   const {project, func} = req.params;
   if (req.query && req.query.id) {
-    const sketchId = req.query.id;
-    const {cache, geometry} = await fetchCacheOrGeometry(project, func, sketchId);
-    if (cache) {
-      res.redirect(`/api/${project}/functions/${func}/status/${cache.uuid}`);
-    } else {
-      if (!geometry) {
-        throw createError(404, "Could not find sketch with ID = " + sketchId);
+    const projectObject = await knex('projects').where({name: project}).first()
+    if (applyAccessControl(req.param('project'), projectObject, req.user, res)) {
+      const sketchId = req.query.id;
+      const {cache, geometry} = await fetchCacheOrGeometry(project, func, sketchId);
+      if (cache) {
+        res.redirect(`/api/${project}/functions/${func}/status/${cache.uuid}`);
       } else {
-        const invocationId = await invoke(project, func, geometry, sketchId);
-        res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
-      }
+        if (!geometry) {
+          throw createError(404, "Could not find sketch with ID = " + sketchId);
+        } else {
+          const invocationId = await invoke(project, func, geometry, sketchId);
+          res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
+        }
+      }  
     }
   } else {
-    // TODO: Replace with demo page
     throw createError(400, "Must provide a sketch id");
   }
 }));
@@ -85,8 +159,11 @@ router.get('/api/:project/functions/:func', wrap( async (req, res) => {
 router.post('/api/:project/functions/:func', wrap( async (req, res) => {
   const {project, func} = req.params;
   const geojson = req.body;
-  const invocationId = await invoke(project, func, geojson);
-  res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
+  const projectObject = await knex('projects').where({name: project}).first()
+  if (applyAccessControl(req.param('project'), projectObject, req.user, res)) {
+    const invocationId = await invoke(project, func, geojson);
+    res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
+  }
 }));
 
 router.get('/api/:project/functions/:func/status/:invocationId', wrap( async (req, res) => {
@@ -108,6 +185,7 @@ router.get('/api/:project/functions/:func/events/:invocationId', (req, res) => {
 
 router.get('/api/projects', wrap( async (req, res) => {
   const projects = await knex('projects').select()
+  console.log('projects', projects);
   const functions = await knex('functions').select();
   const stats = await knex('invocations')
     .select(knex.raw(`count(function) as invocations, project || '-geoprocessing-' || function as function_name, avg(max_memory_used_mb) as average_memory_use, percentile_cont(0.5) within group (order by billed_duration_ms) as billed_duration_50_percentile, percentile_cont(0.5) within group (order by duration) as duration_50_percentile`))
@@ -127,17 +205,21 @@ router.get('/api/projects', wrap( async (req, res) => {
   res.json(projects);
 }));
 
-router.get('/api/recent-invocations', wrap( async (req, res) => {
+router.get('/api/recent-invocations', passport.authorize('token', {session: false}), wrap( async (req, res) => {
   const invocations = await knex('invocations').select().whereNotIn('status', ['running','worker-booting', 'worker-running']).limit(10).orderBy('requested_at', 'desc');
   const outstanding = await knex('invocations').select().whereIn('status', ['running', 'worker-booting', 'worker-running']);
   res.json([...outstanding, ...invocations].map(asInvocation));
+}));
+
+router.get('/tokenInfo', passport.authorize('token', {session: false}), wrap( async (req, res) => {
+  res.json(req.user);
 }));
 
 router.get('/api/:project/functions/:func/metadata', wrap( async (req, res) => {
   const {project, func} = req.params;
   const functions = await knex('functions').where('project_name', project).where('name', func).select();
   if (functions.length === 0) {
-    createError(404);
+    throw createError(404);
   } else {
     const f = functions[0];
     const stats = await knex('invocations')
@@ -176,8 +258,58 @@ router.get('/api/:project/functions/:func/payload/:invocationId', wrap( async (r
     res.set("Content-Disposition", `attachment; filename=${req.params.invocationId}.json`)
     res.json(records[0].payload);  
   } else {
-    createError(404);
+    throw createError(404);
   }
+}));
+
+const User = mongoose.model("User", {
+  email: {type: String, unique: true},
+  hash: String,
+  salt: String,
+  likeABoss: Boolean
+});
+
+router.post('/api/getToken', wrap( async (req, res) => {
+  const {email, password} = req.body;
+  console.log(email, password);
+  if (email && password && email.length && password.length) {
+    console.log('401');
+    const user = await User.findOne({email});
+    if (!user || !user.likeABoss) {
+      throw createError(401);
+    } else {
+      console.log(user);
+      const authenticated = await bcrypt.compare(password, user.hash);
+      console.log('authenticated?', authenticated);
+      if (authenticated) {
+        const token = {
+          iss: "https://analysis.seasketch.org",
+          sub: user.email,
+          superuser: user.likeABoss
+        }
+        res.send(jwt.sign(token, process.env.SECRET_KEY));
+      } else {
+        throw createError(401);
+      }
+    }
+  } else {
+    throw createError(401);
+  }
+}));
+
+router.post('/api/project', passport.authorize('token', {session: false}), wrap( async (req, res) => {
+  const {requireAuth, authorizedClients, name} = req.body;
+  await knex('projects').update({requireAuth, authorizedClients}).where({name})
+  res.send('ok');
+}));
+
+const SeaSketchProject = mongoose.model("Project", {
+  name: String
+});
+
+router.get('/api/seasketch_projects', wrap( async (req, res) => {
+  const projects = await SeaSketchProject.find({}, {name: true});
+  res.json(projects);
 }));
 
 app.use(router);

@@ -127,7 +127,8 @@ const addCommonResources = (serverless, options) => {
     }/${key}/`;
     functions[key].environment["S3_REGION"] = 'us-west-2';
     functions[key].environment["S3_BUCKET"] = { "Fn::ImportValue": "ReportOutputs" };
-
+    console.log(`deleting ${key} events`)
+    delete functions[key].events;
     if (functions[key].launchTemplate) {
       functions[key].instanceType = functions[key].instanceType || "m5.large";
       functions[key].workerTimeout = functions[key].workerTimeout || 1; //minute

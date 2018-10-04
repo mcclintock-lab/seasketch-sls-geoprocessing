@@ -22,6 +22,9 @@ import filesize from "filesize";
 import BundleIcon from "@material-ui/icons/cardgiftcard";
 import FunctionDetails from "./FunctionDetails";
 import semver from "semver";
+import Switch from "@material-ui/core/Switch";
+import SelectSeaSketchProjects from "./SelectSeaSketchProjects";
+import { toggleRequireAuth, updateAuthorizedClients } from "../actions/projects";
 
 const GithubIcon = ({ className, style }) => (
   <span
@@ -72,6 +75,14 @@ const styles = theme => ({
 });
 
 class ProjectPage extends React.Component {
+  handleChange = eventType => (e, value) => {
+    if (eventType === "requireAuthorization") {
+      this.props.toggleRequireAuthorization(this.props.name);
+    } else if (eventType ="authorizedClients") {
+      this.props.updateAuthorizedClients(this.props.name, e.map((i) => i.value));
+    }
+  };
+
   render() {
     const {
       bundleSize,
@@ -84,7 +95,10 @@ class ProjectPage extends React.Component {
       functions,
       updatedAt,
       region,
-      git
+      git,
+      requireAuth,
+      superuser,
+      authorizedClients
     } = this.props;
     if (noProjects) {
       return <CircularProgress className={classes.progress} />;
@@ -186,7 +200,7 @@ class ProjectPage extends React.Component {
         ))}
         {clients &&
           clients.modules.length && (
-            <Card className={classes.card} style={{ width: 358 }}>
+            <Card className={classes.card}>
               <CardContent>
                 <Typography variant="headline" component="h2">
                   Client Dependencies
@@ -236,6 +250,37 @@ class ProjectPage extends React.Component {
               </CardContent>
             </Card>
           )}
+        <Card className={classes.card}>
+          <CardContent>
+            <Typography variant="headline" component="h2">
+              Authorization
+            </Typography>
+            <Typography variant="body1" component="h2">
+              Require requests to be signed by a listed project. SeaSketch will
+              ensure group permissions are respected. Use for sensitive data or
+              expensive computing.
+            </Typography>
+            <Table className={classes.table}>
+              <TableBody>
+                <TableRow>
+                  <TableCell scope="row" className={classes.dt}>
+                    Enabled
+                  </TableCell>
+                  <TableCell numeric className={classes.dd}>
+                    <Switch
+                      checked={requireAuth}
+                      onChange={this.handleChange("requireAuthorization")}
+                      value="requireAuthorization"
+                      disabled={!superuser}
+                    />
+                  </TableCell>
+                </TableRow>
+              </TableBody>
+            </Table>
+            <br />
+            <SelectSeaSketchProjects value={authorizedClients} onChange={this.handleChange('authorizedClients')} disabled={!superuser || !requireAuth} />
+          </CardContent>
+        </Card>
       </React.Fragment>
     );
   }
@@ -251,10 +296,21 @@ const mapStateToProps = (state, ownProps) => {
   );
   return {
     ...project,
-    noProjects: state.projects.length === 0
+    noProjects: state.projects.length === 0,
+    superuser: !!localStorage.token
   };
 };
 
+const mapDispatchToProps = dispatch => ({
+  toggleRequireAuthorization: id => dispatch(toggleRequireAuth(id)),
+  updateAuthorizedClients: (id, clients) => dispatch(updateAuthorizedClients(id, clients))
+});
+
 export default withRouter(
-  withStyles(styles)(connect(mapStateToProps)(ProjectPage))
+  withStyles(styles)(
+    connect(
+      mapStateToProps,
+      mapDispatchToProps
+    )(ProjectPage)
+  )
 );

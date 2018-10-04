@@ -6,9 +6,13 @@ export const UPDATE_INVOCATION = 'UPDATE_INVOCATION';
 
 var lastETag = null;
 
-export const fetchInvocations = async (dispatch) => {
-  const response = await fetch("/api/recent-invocations");
-  if (response.headers.get('etag') !== lastETag) {
+export const fetchInvocations = async (dispatch, token) => {
+  const response = await fetch("/api/recent-invocations", {
+    headers: new Headers({
+      'Authorization': `Bearer ${token}`
+    })
+  });
+  if (response.ok && response.headers.get('etag') !== lastETag) {
     const invocations = await response.json();
     dispatch({
       type: UPDATE_INVOCATIONS,

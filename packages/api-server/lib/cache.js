@@ -1,9 +1,6 @@
 const knex = require("./knex");
-const mongoose = require("mongoose");
-if (process.env.SEASKETCH_DB) {
-  console.log("connecting to seasketch db", process.env.SEASKETCH_DB);
-  mongoose.connect(process.env.SEASKETCH_DB);
-}
+const mongoose = require('./mongoose');
+
 const Sketch = mongoose.model("Sketch", {
   editedAt: Date,
   attributes: Object,
@@ -74,7 +71,7 @@ const getGeometry = async sketch => {
   const geometry = await LargeGeometry.findById(
     sketch.get("preprocessedgeometryid")
   );
-  return proj.toWgs84(esriUtils.arcgisToGeoJSON(geometry.geometry.features[0]));
+  return proj.toWgs84(esriUtils.arcgisToGeoJSON(geometry.geometry.features[0])).geometry;
 };
 
 const getGeoJSON = async sketch => {

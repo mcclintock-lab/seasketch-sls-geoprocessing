@@ -11,6 +11,7 @@ import TableRow from '@material-ui/core/TableRow';
 import Paper from '@material-ui/core/Paper';
 import InvocationsList from '../components/InvocationsList';
 import semver from 'semver';
+import { Typography } from '@material-ui/core';
 
 const styles = theme => ({
   root: {
@@ -61,7 +62,8 @@ class MainPage extends React.Component {
             </TableBody>
           </Table>
         </Paper>
-        <Paper className={classes.root}>
+        <Paper style={{display: invocations.length ? null : 'none'}} className={classes.root}>
+          <Typography style={{padding: 20}} variant="headline">Recent Invocations</Typography>
           <InvocationsList invocations={invocations} onClick={(invocation) => history.push(`/invocations/detail/${invocation.uuid}`)} />
         </Paper>
       </React.Fragment>
