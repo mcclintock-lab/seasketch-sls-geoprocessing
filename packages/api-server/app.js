@@ -5,7 +5,6 @@ var path = require('path');
 var cookieParser = require('cookie-parser');
 var logger = require('morgan');
 var wrap = require('async-middleware').wrap
-const fs = require('fs');
 const cors = require('cors')
 const { fetchCacheOrGeometry } = require('./lib/cache');
 const knex = require('./lib/knex');
@@ -15,15 +14,6 @@ const getStatus = require('./lib/getStatus');
 const asInvocation = require('./lib/asInvocation');
 const { initPriceMonitor } = require("./lib/ec2Pricing");
 
-const { URL } = require('url');
-const HOST = process.env.HOST || "http://localhost:3001";
-const COST_PER_GB_SECOND = 0.00001667;
-const APPROX_SQS_COST = 0.00000040 * (// per message
-                        1 + // results message
-                        3 // log messages
-);
-
-const COST_PER_REQUEST = 0.0000002;
 require('./lib/sqsListeners').init((err) => {
   console.error(err);
   process.exit();
