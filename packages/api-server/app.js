@@ -13,6 +13,7 @@ const SSEventEmitter = require('./lib/sse');
 const getStatus = require('./lib/getStatus');
 const asInvocation = require('./lib/asInvocation');
 const { initPriceMonitor } = require("./lib/ec2Pricing");
+const rateLimit = require("express-rate-limit");
 
 require('./lib/sqsListeners').init((err) => {
   console.error(err);
@@ -43,6 +44,20 @@ app.use(cors({credentials: true, origin: [
 
 var router = express.Router();
 
+app.enable("trust proxy");
+
+const apiLimiter = rateLimit({
+  windowMs: 1000 * 60, // 1 minute
+  max: 100
+});
+
+const invocationLimiter = rateLimit({
+  windowMs: 1000 * 60, // 1 minute
+  max: 20
+});
+
+app.use("/api", apiLimiter);
+
 router.get('/healthcheck', function(req, res, next) {
   res.send("OK");
 });
@@ -51,7 +66,7 @@ router.get('/api', function(req, res, next) {
   res.json({ title: 'Express' });
 });
 
-router.get('/api/:project/functions/:func', wrap( async (req, res) => {
+router.get('/api/:project/functions/:func', invocationLimiter, wrap( async (req, res) => {
   const {project, func} = req.params;
   if (req.query && req.query.id) {
     const sketchId = req.query.id;
@@ -72,7 +87,7 @@ router.get('/api/:project/functions/:func', wrap( async (req, res) => {
   }
 }));
 
-router.post('/api/:project/functions/:func', wrap( async (req, res) => {
+router.post('/api/:project/functions/:func', invocationLimiter, wrap( async (req, res) => {
   const {project, func} = req.params;
   const geojson = req.body;
   const invocationId = await invoke(project, func, geojson);
