@@ -20,31 +20,102 @@ const bcrypt = require('bcrypt');
 const mongoose = require('./lib/mongoose');
 const debug = require('./lib/debug');
 
+const jwksClient = require('jwks-rsa')({
+  cache: true,
+  jwksUri: 'https://www.seasketch.org/.well-known/jwks.json'
+});
+
 if (!process.env.SECRET_KEY) {
   throw new Error(`SECRET_KEY environment variable not set`);
 }
 
 passport.use('token', new BearerStrategy(
   function(token, done) {
-    const contents = jwt.decode(token);
-    if (contents && contents.iss === 'https://analysis.seasketch.org') {
-      jwt.verify(token, process.env.SECRET_KEY, function(err, decoded) {
-        if (err) {
-          done(null, false);
+    if (token) {
+      const data = jwt.decode(token, {complete: true});
+      if (data && data.header && data.payload) {
+        const contents = data.payload;
+        const header = data.header;
+        if (contents && contents.iss === 'https://analysis.seasketch.org') {
+          jwt.verify(token, process.env.SECRET_KEY, function(err, decoded) {
+            if (err) {
+              done(null, false);
+            } else {
+              if (decoded.superuser) {
+                decoded.token = token;
+                done(null, decoded);
+              } else {
+                done(null, false);
+              }
+            }
+          });
+        } else if (contents && contents.iss === 'https://www.seasketch.org') {
+          jwksClient.getSigningKey(header.kid, (err, key) => {
+            const signingKey = key.publicKey || key.rsaPublicKey;
+            jwt.verify(token, signingKey, function(err, decoded) {
+              if (err) {
+                done(null, false);
+              } else {
+                done(null, decoded);
+              }
+            });
+            // Now I can use this to configure my Express or Hapi middleware
+          });      
         } else {
-          if (decoded.superuser) {
-            decoded.token = token;
-            done(null, decoded);
-          } else {
-            done(null, false);
-          }
+          done(null, false);
         }
-      });
+      } else {
+        done(null, false);
+      }  
     } else {
-      done(null, false);
+      done(null, false)
     }
   }
 ));
+
+const optionalAuthMiddleware = function(req, res, next) {
+  passport.authenticate('token', function(err, user, info) {
+    req.authenticated = !! user;
+    req.user = user;
+    req.info = info;
+    next();
+  })(req, res, next);
+};
+
+const requireSuperuserMiddleware = (req, res, next) => {
+  optionalAuthMiddleware(req, res, async () => {
+    if (req.user && req.user.superuser) {
+      next(null);
+    } else {
+      next(createError(403, `Unauthorized`));
+    }
+  })
+}
+
+const requireProjectPermission = (req, res, next) => {
+  optionalAuthMiddleware(req, res, async () => {
+    if (req.user && req.user.superuser) {
+      next(null);
+    } else {
+      if (!req.params.project) {
+        next(createError(400, "No project specified"))
+      } else {
+        const project = await knex('projects').where({name: req.params.project}).first();
+        if (!project) {
+          next(createError(404, `No project named ${req.params.project}`));
+        } else {
+          if (!project.requireAuth) {
+            next(null);
+          } else if (req.user && req.user.project && project.authorizedClients.indexOf(req.user.project) !== -1) {
+            next(null);
+          } else {
+            next(createError(403, `Unauthorized`));
+          }
+        }
+      }  
+    }
+  })
+}
 
 
 require('./lib/sqsListeners').init((err) => {
@@ -84,7 +155,7 @@ router.get('/api', function(req, res, next) {
   res.json({ title: 'Express' });
 });
 
-router.get('/api/:project/functions/:func', wrap( async (req, res) => {
+router.get('/api/:project/functions/:func', requireProjectPermission, wrap( async (req, res) => {
   const {project, func} = req.params;
   if (req.query && req.query.id) {
     const sketchId = req.query.id;
@@ -105,7 +176,7 @@ router.get('/api/:project/functions/:func', wrap( async (req, res) => {
   }
 }));
 
-router.post('/api/:project/functions/:func', wrap( async (req, res) => {
+router.post('/api/:project/functions/:func', requireProjectPermission, wrap( async (req, res) => {
   const {project, func} = req.params;
   const geojson = req.body;
   const invocationId = await invoke(project, func, geojson);
@@ -119,7 +190,7 @@ router.get('/api/:project/functions/:func/status/:invocationId', wrap( async (re
 }));
 
 router.get('/api/invocations/:invocationId', wrap( async (req, res) => {
-  const {project, func, invocationId} = req.params;
+  const {invocationId} = req.params;
   const data = await getStatus(invocationId);
   res.json(data);
 }));
@@ -129,13 +200,22 @@ router.get('/api/:project/functions/:func/events/:invocationId', (req, res) => {
   new SSEventEmitter(project, func, invocationId, req, res);
 });
 
-router.get('/api/projects', wrap( async (req, res) => {
-  const projects = await knex('projects').select()
-  console.log('projects', projects);
+router.get('/api/projects', optionalAuthMiddleware, wrap( async (req, res) => {
+  let projects = await knex('projects').select()
   const functions = await knex('functions').select();
   const stats = await knex('invocations')
     .select(knex.raw(`count(function) as invocations, project || '-geoprocessing-' || function as function_name, avg(max_memory_used_mb) as average_memory_use, percentile_cont(0.5) within group (order by billed_duration_ms) as billed_duration_50_percentile, percentile_cont(0.5) within group (order by duration) as duration_50_percentile`))
     .groupBy('project', 'function')
+  if (req.user && req.user.superuser) {
+    // gets access to everything
+  } else if (req.user && req.user.admin) {
+    // gets access to protected project reports
+    projects = projects.filter((p) => !p.requireAuth || p.authorizedClients.indexOf(req.user.admin) !== -1)
+  } else {
+    // no access to any acl projects
+    // filter all requireAuth
+    projects = projects.filter((p) => !p.requireAuth)
+  }
   for (var p of projects) {
     p.functions = functions.filter((f) => f.projectName === p.name)
     for (var f of p.functions) {
@@ -151,7 +231,7 @@ router.get('/api/projects', wrap( async (req, res) => {
   res.json(projects);
 }));
 
-router.get('/api/recent-invocations', passport.authorize('token', {session: false}), wrap( async (req, res) => {
+router.get('/api/recent-invocations', requireSuperuserMiddleware, wrap( async (req, res) => {
   const invocations = await knex('invocations').select().whereNotIn('status', ['running','worker-booting', 'worker-running']).limit(10).orderBy('requested_at', 'desc');
   const outstanding = await knex('invocations').select().whereIn('status', ['running', 'worker-booting', 'worker-running']);
   res.json([...outstanding, ...invocations].map(asInvocation));
@@ -213,16 +293,12 @@ const User = mongoose.model("User", {
 
 router.post('/api/getToken', wrap( async (req, res) => {
   const {email, password} = req.body;
-  console.log(email, password);
   if (email && password && email.length && password.length) {
-    console.log('401');
     const user = await User.findOne({email});
     if (!user || !user.likeABoss) {
       throw createError(401);
     } else {
-      console.log(user);
       const authenticated = await bcrypt.compare(password, user.hash);
-      console.log('authenticated?', authenticated);
       if (authenticated) {
         const token = {
           iss: "https://analysis.seasketch.org",
@@ -239,7 +315,7 @@ router.post('/api/getToken', wrap( async (req, res) => {
   }
 }));
 
-router.post('/api/project', passport.authorize('token', {session: false}), wrap( async (req, res) => {
+router.post('/api/project', requireSuperuserMiddleware, wrap( async (req, res) => {
   const {requireAuth, authorizedClients, name} = req.body;
   await knex('projects').update({requireAuth, authorizedClients}).where({name})
   res.send('ok');

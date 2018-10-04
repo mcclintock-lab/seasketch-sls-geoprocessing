@@ -12,6 +12,19 @@ import CloseIcon from "@material-ui/icons/Close";
 import JssProvider from 'react-jss/lib/JssProvider';
 import { create } from 'jss';
 import { createGenerateClassName, jssPreset } from '@material-ui/core/styles';
+import {
+  setFetchTokenFunction
+} from "@seasketch-sls-geoprocessing/client";
+
+setFetchTokenFunction(async (project) => {
+  const response = await fetch(`https://www.seasketch.org/jwt/analysisToken/${window.app.state.get('project').id}/${project}`);
+  const data = await response.json();
+  if (data.token) {
+    return data.token;
+  } else {
+    throw new Error("Unrecognized response from token service");
+  }
+}); 
 
 const generateClassName = createGenerateClassName();
 const jss = create(jssPreset());
