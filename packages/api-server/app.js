@@ -74,7 +74,7 @@ passport.use('token', new BearerStrategy(
 ));
 
 const optionalAuthMiddleware = function(req, res, next) {
-  passport.authenticate('token', function(err, user, info) {
+  passport.authenticate('token', {session: false}, function(err, user, info) {
     req.authenticated = !! user;
     req.user = user;
     req.info = info;
@@ -331,8 +331,14 @@ router.post('/api/getToken', wrap( async (req, res) => {
 }));
 
 router.post('/api/project', requireSuperuserMiddleware, wrap( async (req, res) => {
-  const {requireAuth, authorizedClients, name} = req.body;
-  await knex('projects').update({requireAuth, authorizedClients}).where({name})
+  const {requireAuth, authorizedClients, name, costLimitUsd} = req.body;
+  await knex('projects').update({requireAuth, authorizedClients, costLimitUsd}).where({name})
+  res.send('ok');
+}));
+
+router.post('/api/costLimit', requireSuperuserMiddleware, wrap ( async (req, res) => {
+  const {costLimitUsd, functionName} = req.body;
+  await knex('functions').update({costLimitUsd}).where({functionName});
   res.send('ok');
 }));
 

@@ -24,7 +24,7 @@ import FunctionDetails from "./FunctionDetails";
 import semver from "semver";
 import Switch from "@material-ui/core/Switch";
 import SelectSeaSketchProjects from "./SelectSeaSketchProjects";
-import { toggleRequireAuth, updateAuthorizedClients } from "../actions/projects";
+import { toggleRequireAuth, updateAuthorizedClients, updateCostLimit } from "../actions/projects";
 
 const GithubIcon = ({ className, style }) => (
   <span
@@ -98,7 +98,8 @@ class ProjectPage extends React.Component {
       git,
       requireAuth,
       superuser,
-      authorizedClients
+      authorizedClients,
+      onCostLimitChange
     } = this.props;
     if (noProjects) {
       return <CircularProgress className={classes.progress} />;
@@ -192,7 +193,7 @@ class ProjectPage extends React.Component {
               </Typography>
               <Table className={classes.table}>
                 <TableBody>
-                  <FunctionDetails {...func} />
+                  <FunctionDetails {...func} onCostLimitChange={onCostLimitChange(name, func.name)} />
                 </TableBody>
               </Table>
             </CardContent>
@@ -303,7 +304,8 @@ const mapStateToProps = (state, ownProps) => {
 
 const mapDispatchToProps = dispatch => ({
   toggleRequireAuthorization: id => dispatch(toggleRequireAuth(id)),
-  updateAuthorizedClients: (id, clients) => dispatch(updateAuthorizedClients(id, clients))
+  updateAuthorizedClients: (id, clients) => dispatch(updateAuthorizedClients(id, clients)),
+  onCostLimitChange: (project, func) => (a) => dispatch(updateCostLimit(project, func, a.target.value))
 });
 
 export default withRouter(
