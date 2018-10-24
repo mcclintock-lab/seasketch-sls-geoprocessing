@@ -15,7 +15,6 @@ export default class FormDialog extends React.Component {
   };
 
   async handleSubmit() {
-    console.log(this.state.email, this.state.password);
     this.setState({
       submitting: true
     })
@@ -32,7 +31,6 @@ export default class FormDialog extends React.Component {
       localStorage.email = this.state.email;
       window.location.reload();
     } else {
-      console.error('response', response);
       this.setState({errors: "Invalid username or password", submitting: false});
     }
   }

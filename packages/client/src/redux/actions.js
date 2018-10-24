@@ -7,6 +7,7 @@ export const REPORTING_FETCH_CLIENT = "REPORTING_FETCH_CLIENT";
 export const REPORTING_CLIENT_LOADED = "REPORTING_CLIENT_LOADED";
 export const REPORTING_CLIENT_ERROR = "REPORTING_CLIENT_ERROR";
 import { fromJSON } from "./utils";
+import { fetchTokenForProject, tokenCache } from './auth';
 
 export const fetchClients = (id, url) => {
   return async dispatch => {
@@ -79,9 +80,10 @@ const fetchSource = async (source, sketch, dispatch) => {
     }
     const opts = {
       method: isPOST ? "GET" : "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
+      headers: new Headers({
+        "Content-Type": "application/json",
+        ...( tokenCache.get(project) ? {"Authorization": `Bearer ${tokenCache.get(project)}`} : {} )
+      }),
       body: isPOST ? null : JSON.stringify(sketch)
     };
     const response = await fetch(url, opts);
@@ -101,19 +103,42 @@ const fetchSource = async (source, sketch, dispatch) => {
         status: fromJSON(data)
       });
     } else {
-      dispatch({
-        type: REPORTING_STATUS_UPDATE,
-        source,
-        id,
-        status: {
-          status: "failed"
+      if (response.status === 403 && 
+        // don't retry if already tried with a token
+        !opts.headers.get('Authorization')) {
+        try {
+          const token = await fetchTokenForProject(project);
+          fetchSource(source, sketch, dispatch);
+        } catch(e) {
+          dispatch({
+            type: REPORTING_STATUS_UPDATE,
+            source,
+            id,
+            status: {
+              status: "failed"
+            }
+          });
+          setTimeout(() => {
+            throw new Error(
+              `Token problem requesting report ${source}, ${id}. ${response.status}`
+            );
+          }, 100);  
         }
-      });
-      setTimeout(() => {
-        throw new Error(
-          `Problem requesting report ${source}, ${id}. ${response.status}`
-        );
-      }, 1000);
+      } else {
+        dispatch({
+          type: REPORTING_STATUS_UPDATE,
+          source,
+          id,
+          status: {
+            status: "failed"
+          }
+        });
+        setTimeout(() => {
+          throw new Error(
+            `Problem requesting report ${source}, ${id}. ${response.status}`
+          );
+        }, 1000);  
+      }
     }
   } catch (e) {
     dispatch({

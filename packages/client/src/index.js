@@ -33,6 +33,9 @@ import {
   changeReportSidebarTab,
   clearSidebars
 } from "./redux/actions";
+import {
+  setFetchTokenFunction
+} from "./redux/auth";
 
 const requiredProps = ["sources", "title"];
 
@@ -111,5 +114,6 @@ export {
   // utils
   slugify,
   versionSatisfied,
-  getResults
+  getResults,
+  setFetchTokenFunction
 };

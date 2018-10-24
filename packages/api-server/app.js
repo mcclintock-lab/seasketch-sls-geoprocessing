@@ -19,6 +19,7 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const mongoose = require('./lib/mongoose');
 const rateLimit = require("express-rate-limit");
+const debug = require('./lib/debug');
 
 const jwksClient = require('jwks-rsa')({
   cache: true,
