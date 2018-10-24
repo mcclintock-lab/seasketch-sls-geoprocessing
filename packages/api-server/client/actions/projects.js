@@ -8,7 +8,11 @@ export const updateProjects = (projects) => ({
 var lastETag = null;
 
 export const fetchProjects = async (dispatch) => {
-  const response = await fetch("/api/projects");
+  const response = await fetch("/api/projects", {
+    headers: new Headers({
+      'Authorization': `Bearer ${localStorage.token}`
+    })
+  });
   if (response.headers.get('etag') !== lastETag) {
     const projects = await response.json();
     dispatch(updateProjects(projects))

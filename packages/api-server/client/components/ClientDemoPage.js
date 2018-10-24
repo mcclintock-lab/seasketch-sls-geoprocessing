@@ -15,7 +15,14 @@ import {
   closeReportSidebar,
   clearSidebars
 } from "@seasketch-sls-geoprocessing/client";
+import {
+  setFetchTokenFunction
+} from "@seasketch-sls-geoprocessing/client";
 import uuid from "uuid/v4";
+
+setFetchTokenFunction(async () => {
+  return localStorage.token;
+});
 
 const styles = theme => ({
   title: {},

@@ -196,7 +196,6 @@ class IntegrationReactSelect extends React.Component {
         },
       }),
     };
-    console.log(this.props.disabled);
     return (
       <div className={classes.root}>
         <Select

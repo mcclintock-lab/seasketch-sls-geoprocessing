@@ -278,7 +278,7 @@ class ProjectPage extends React.Component {
               </TableBody>
             </Table>
             <br />
-            <SelectSeaSketchProjects value={authorizedClients} onChange={this.handleChange('authorizedClients')} disabled={!superuser || !requireAuth} />
+            <SelectSeaSketchProjects value={authorizedClients || []} onChange={this.handleChange('authorizedClients')} disabled={!superuser || !requireAuth} />
           </CardContent>
         </Card>
       </React.Fragment>
