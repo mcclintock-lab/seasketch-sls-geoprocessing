@@ -1,6 +1,6 @@
 {
   "name": "@seasketch-sls-geoprocessing/plugin",
-  "version": "2.0.0",
+  "version": "2.3.0",
   "description": "Serverless geoprocessing platform for SeaSketch",
   "main": "index.js",
   "scripts": {},
