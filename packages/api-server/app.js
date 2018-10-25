@@ -19,7 +19,8 @@ const jwt = require('jsonwebtoken');
 const bcrypt = require('bcrypt');
 const mongoose = require('./lib/mongoose');
 const rateLimit = require("express-rate-limit");
-const debug = require('./lib/debug');
+const debug = require('./lib/debug')
+const ms = require('ms');
 
 const jwksClient = require('jwks-rsa')({
   cache: true,
@@ -149,15 +150,39 @@ app.use(cors({credentials: true, origin: [
 app.enable("trust proxy");
 
 const apiLimiter = rateLimit({
-  windowMs: 1000 * 60, // 1 minute
+  windowMs: ms('1m'),
   max: 100
 });
 
 const invocationLimiter = rateLimit({
-  windowMs: 1000 * 60 * 10, // 10 minutes
+  windowMs: ms('10m'),
   max: 100,
   message: "You may only request 100 reports every 10 minutes."
 });
+
+const resetCostMetadata = async () => knex.raw("select reset_function_cost_metadata()")
+
+
+resetCostMetadata();
+setInterval(resetCostMetadata, ms('5m'));
+
+const invocationCostLimiter = async (req, res, next) => {
+  if (!req.params.project || !req.params.func) {
+    next(createError(400, 'No project or function specified'));
+  } else {
+    const func = await knex('functions').select('costPerInvocation', 'invocationsThisMonth', 'costLimitUsd').where('functionName', [req.params.project, 'geoprocessing', req.params.func].join('-')).first();
+    const invocations = func.invocationsThisMonth + 1;
+    if (parseFloat(func.costPerInvocation) * invocations > func.costLimitUsd) {
+      const invocationLimit = Math.round(func.costLimitUsd / func.costPerInvocation);
+      res.set('x-ratelimit-limit', invocationLimit);
+      res.set('x-ratelimit-remaining', invocationLimit - func.invocationsThisMonth);
+      res.set('x-ratelimit-reset', Math.round(new Date(new Date().getUTCFullYear(), (new Date().getMonth()+1)%12, 1).getTime()/ 1000));
+      next(createError(429, `Cost limit of $${func.costLimitUsd}.00 exceeded for this month`));
+    } else {
+      next();
+    }
+  }
+}
 
 app.use("/api", apiLimiter);
 
@@ -171,7 +196,9 @@ router.get('/api', function(req, res, next) {
   res.json({ title: 'Express' });
 });
 
-router.get('/api/:project/functions/:func', invocationLimiter, requireProjectPermission, wrap( async (req, res) => {
+// # Invoke function
+
+router.get('/api/:project/functions/:func', invocationLimiter, invocationCostLimiter, requireProjectPermission, wrap( async (req, res) => {
   const {project, func} = req.params;
   if (req.query && req.query.id) {
     const sketchId = req.query.id;
@@ -192,12 +219,14 @@ router.get('/api/:project/functions/:func', invocationLimiter, requireProjectPer
   }
 }));
 
-router.post('/api/:project/functions/:func', invocationLimiter, requireProjectPermission, wrap( async (req, res) => {
+router.post('/api/:project/functions/:func', invocationLimiter, invocationCostLimiter, requireProjectPermission, wrap( async (req, res) => {
   const {project, func} = req.params;
   const geojson = req.body;
   const invocationId = await invoke(project, func, geojson);
   res.redirect(`/api/${project}/functions/${func}/status/${invocationId}`);
 }));
+
+// Get invocation progress
 
 router.get('/api/:project/functions/:func/status/:invocationId', wrap( async (req, res) => {
   const {project, func, invocationId} = req.params;
@@ -216,12 +245,11 @@ router.get('/api/:project/functions/:func/events/:invocationId', (req, res) => {
   new SSEventEmitter(project, func, invocationId, req, res);
 });
 
+// Project list
+
 router.get('/api/projects', optionalAuthMiddleware, wrap( async (req, res) => {
   let projects = await knex('projects').select()
   const functions = await knex('functions').select();
-  const stats = await knex('invocations')
-    .select(knex.raw(`count(function) as invocations, project || '-geoprocessing-' || function as function_name, avg(max_memory_used_mb) as average_memory_use, percentile_cont(0.5) within group (order by billed_duration_ms) as billed_duration_50_percentile, percentile_cont(0.5) within group (order by duration) as duration_50_percentile`))
-    .groupBy('project', 'function')
   if (req.user && req.user.superuser) {
     // gets access to everything
   } else if (req.user && req.user.admin) {
@@ -232,20 +260,14 @@ router.get('/api/projects', optionalAuthMiddleware, wrap( async (req, res) => {
     // filter all requireAuth
     projects = projects.filter((p) => !p.requireAuth)
   }
+  functions.forEach((f) => f.costPerInvocation = parseFloat(f.costPerInvocation))
   for (var p of projects) {
     p.functions = functions.filter((f) => f.projectName === p.name)
-    for (var f of p.functions) {
-      const s = stats.find((s) => s.functionName === f.functionName);
-      if (s) {
-        f.invocations = s.invocations;
-        f.averageMemoryUse = Math.round(s.averageMemoryUse);
-        f.billedDuration50thPercentile = s.billedDuration_50Percentile;
-        f.duration50thPercentile = s.duration_50Percentile;
-      }
-    }
   }
   res.json(projects);
 }));
+
+// Invocations list (admins only)
 
 router.get('/api/recent-invocations', requireSuperuserMiddleware, wrap( async (req, res) => {
   const invocations = await knex('invocations').select().whereNotIn('status', ['running','worker-booting', 'worker-running']).limit(10).orderBy('requested_at', 'desc');
@@ -253,42 +275,7 @@ router.get('/api/recent-invocations', requireSuperuserMiddleware, wrap( async (r
   res.json([...outstanding, ...invocations].map(asInvocation));
 }));
 
-router.get('/api/:project/functions/:func/metadata', wrap( async (req, res) => {
-  const {project, func} = req.params;
-  const functions = await knex('functions').where('project_name', project).where('name', func).select();
-  if (functions.length === 0) {
-    throw createError(404);
-  } else {
-    const f = functions[0];
-    const stats = await knex('invocations')
-      .select(knex.raw(`count(function) as invocations, project || '-geoprocessing-' || function as function_name, avg(max_memory_used_mb) as average_memory_use, percentile_cont(0.5) within group (order by billed_duration_ms) as billed_duration_50_percentile, percentile_cont(0.5) within group (order by duration) as duration_50_percentile`))
-      .where('project', project)
-      .where('function', func)
-      .groupBy('project', 'function');
-    const projectInfo = await knex('projects').select().where('name', project);
-    // get cost info
-    // get error counts and times
-    res.json({
-      ...projectInfo[0],
-      name: f.name,
-      projectName: f.projectName,
-      functionName: f.functionName,
-      description: f.description,
-      timeout: f.timeout,
-      memorySize: f.memorySize,
-      outputs: f.outputs,
-      launchTemplate: f.launchTemplate,
-      instanceType: f.instanceType,
-      workerTimeout: f.workerTimeout,
-      stats: {
-        invocations: stats[0] ? stats[0].invocations : 0,
-        averageMemoryUse: stats[0] ? Math.round(stats[0].averageMemoryUse) : null,
-        billedDuration50thPercentile: stats[0] ? stats[0].billedDuration_50Percentile : null,
-        duration50thPercentile: stats[0] ? stats[0].duration_50Percentile : null
-      }
-    });
-  }
-}));
+// Get payload of an invocation
 
 router.get('/api/:project/functions/:func/payload/:invocationId', wrap( async (req, res) => {
   const records = await knex('payloads').where('invocationUuid', req.params.invocationId);

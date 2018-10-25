@@ -3,7 +3,7 @@
   "version": "2.2.0",
   "private": true,
   "scripts": {
-    "start": "nodemon ./bin/www | webpack-dev-server --config ./webpack.config.js --mode development --https",
+    "start": "webpack-dev-server --config ./webpack.config.js --mode development --https | nodemon ./bin/www",
     "build": "rm -rf dist/* && NODE_ENV=production webpack",
     "deploy-client": "rm -rf dist/* && NODE_ENV=production webpack && bin/pushClientToS3",
     "deploy-server": "./bin/deploy"
@@ -46,6 +46,7 @@
     "mongodb": "^3.0.8",
     "mongoose": "^4.13.12",
     "morgan": "~1.9.0",
+    "ms": "^2.1.1",
     "ora": "^3.0.0",
     "passport": "^0.4.0",
     "passport-http-bearer": "^1.0.1",

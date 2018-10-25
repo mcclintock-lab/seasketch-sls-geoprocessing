@@ -103,6 +103,12 @@ const fetchSource = async (source, sketch, dispatch) => {
         status: fromJSON(data)
       });
     } else {
+      var data = {};
+      try {
+        data = await response.json();
+      } catch(e) {
+        // do nothing
+      }
       if (response.status === 403 && 
         // don't retry if already tried with a token
         !opts.headers.get('Authorization')) {
@@ -115,7 +121,8 @@ const fetchSource = async (source, sketch, dispatch) => {
             source,
             id,
             status: {
-              status: "failed"
+              status: "failed",
+              error: data.message || `Token problem requesting report ${source}, ${id}. ${response.status}`
             }
           });
           setTimeout(() => {
@@ -130,7 +137,8 @@ const fetchSource = async (source, sketch, dispatch) => {
           source,
           id,
           status: {
-            status: "failed"
+            status: "failed",
+            error: data.message || `Problem requesting report ${source}, ${id}. ${response.status}`
           }
         });
         setTimeout(() => {
@@ -145,7 +153,8 @@ const fetchSource = async (source, sketch, dispatch) => {
       type: REPORTING_STATUS_UPDATE,
       source,
       id,
-      status: "failed"
+      status: "failed",
+      error: e.toString()
     });
   }
 };

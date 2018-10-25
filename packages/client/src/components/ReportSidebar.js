@@ -108,6 +108,7 @@ class ReportSidebar extends React.Component {
       ReportTab = client.tabs[selectedTab];
     }
 
+    console.log('results', results);
 
     return (
       <Paper
@@ -200,7 +201,7 @@ class ReportSidebar extends React.Component {
               <Avatar className={classes.errorAvatar}>
                 <ErrorIcon />
               </Avatar>
-              Error analyzing Sketch
+              { results && results[0] && results[0].error && results[0].error.length ? results[0].error : `Error analyzing Sketch` }
               {
                 results && results[0] && results[0].logPage && <div style={{marginTop: 8, fontSize: 14}}><a style={{color: 'grey'}} href={results[0].logPage} target="_blank">see logs</a></div>
               }

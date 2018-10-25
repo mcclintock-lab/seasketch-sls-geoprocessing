@@ -20,4 +20,12 @@ const ec2Cost = (pricePerHour, duration) => {
   return (pricePerHour / 60 ) * minutes;
 }
 
-export {lambdaCost, ec2Cost};
+calculateCost = (func) => {
+  if (func.launchTemplate) {
+    return ec2Cost(func.pricePerHour, func.duration50thPercentile);
+  } else {
+    return lambdaCost(func.memorySize, func.billedDuration50thPercentile);
+  }
+}
+
+module.exports = {lambdaCost, ec2Cost, calculateCost};

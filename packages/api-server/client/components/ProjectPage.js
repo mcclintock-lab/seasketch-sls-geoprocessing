@@ -163,7 +163,7 @@ class ProjectPage extends React.Component {
           </Grid>
         </Paper>
         {clients &&
-          clients.modules.map(client => (
+          clients.modules.sort((a, b) => a.title.localeCompare(b.title)).map(client => (
             <Card className={classes.card} key={client.title}>
               <CardContent>
                 <Typography variant="headline" component="h2">
@@ -185,7 +185,7 @@ class ProjectPage extends React.Component {
               </CardActions>
             </Card>
           ))}
-        {functions.map(func => (
+        {functions.sort((a, b) => a.name.localeCompare(b.name)).map(func => (
           <Card key={func.name} className={classes.card}>
             <CardContent>
               <Typography variant="headline" component="h2">

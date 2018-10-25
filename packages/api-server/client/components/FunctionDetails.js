@@ -30,7 +30,10 @@ const FunctionDetails = ({
   invocations,
   classes,
   costLimitUsd,
-  onCostLimitChange
+  onCostLimitChange,
+  invocationsThisMonth,
+  budgetSpentPercent,
+  costPerInvocation
 }) => {
   let totalAverageCost = lambdaCost(memorySize, billedDuration50thPercentile);
   if (launchTemplate) {
@@ -44,14 +47,6 @@ const FunctionDetails = ({
         </TableCell>
         <TableCell numeric className={classes.dd}>
           {launchTemplate ? "ec2" : "lambda"}
-        </TableCell>
-      </TableRow>
-      <TableRow>
-        <TableCell scope="row" className={classes.dt}>
-          Invocations
-        </TableCell>
-        <TableCell numeric className={classes.dd}>
-          {invocations}
         </TableCell>
       </TableRow>
       {launchTemplate ? (
@@ -118,14 +113,12 @@ const FunctionDetails = ({
           </TableRow>
         </React.Fragment>
       )}
-            <TableRow>
+      <TableRow>
         <TableCell scope="row" className={classes.dt}>
-          Cost
+          Invocations this month
         </TableCell>
         <TableCell numeric className={classes.dd}>
-          {totalAverageCost < 0.1
-            ? `$1.00 pays for ${Math.round(1 / totalAverageCost)} runs`
-            : `\$${Math.round(totalAverageCost * 100) / 100}`}
+          {invocationsThisMonth}
         </TableCell>
       </TableRow>
       <TableRow>
@@ -138,7 +131,7 @@ const FunctionDetails = ({
       </TableRow>
       <TableRow>
         <TableCell scope="row" colSpan={2} style={{textAlign: 'center'}}>
-          ${costLimitUsd}.00 pays for {new Intl.NumberFormat('en-us', { maximumSignificantDigits: 3 }).format(Math.round(costLimitUsd / totalAverageCost))} runs
+          ${costLimitUsd}.00 pays for {new Intl.NumberFormat('en-us', { maximumSignificantDigits: 3 }).format(Math.round(costLimitUsd / costPerInvocation))} runs. <br /> {budgetSpentPercent}% of monthly budget used.
         </TableCell>
       </TableRow>
 
