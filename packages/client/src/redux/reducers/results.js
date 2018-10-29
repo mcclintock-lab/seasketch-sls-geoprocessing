@@ -25,7 +25,6 @@ const reducer = (state = {}, action) => {
         }
       };
     case REPORTING_STATUS_UPDATE:
-      console.log(action, fromJSON(action.status), state[key]);
       return {
         ...state,
         [key]: fromJSON(action.status)

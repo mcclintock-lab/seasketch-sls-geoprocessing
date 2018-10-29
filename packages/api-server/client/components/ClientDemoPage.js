@@ -13,7 +13,8 @@ import {
   changeReportSidebarTab,
   openReportSidebar,
   closeReportSidebar,
-  clearSidebars
+  clearSidebars,
+  toggleEmailMe
 } from "@seasketch-sls-geoprocessing/client";
 import {
   setFetchTokenFunction
@@ -109,7 +110,8 @@ class ClientDemoPage extends React.Component {
       classes,
       reportSidebars,
       examples,
-      getResults
+      getResults,
+      loggedIn
     } = this.props;
     if (!project) {
       return <CircularProgress className={classes.progress} />;
@@ -151,6 +153,8 @@ class ClientDemoPage extends React.Component {
               results={results}
               selectedTab={selectedTab}
               open
+              loggedIn={loggedIn}
+              toggleEmailMe={this.props.toggleEmailMe}
               menuItems={[
                 {
                   label: "View logs",
@@ -205,7 +209,9 @@ const mapStateToProps = (state, ownProps) => {
     clientLoading: !client && !clientError && info,
     selectedTab: 0,
     examples,
-    getResults: (sketch, sources) => getResults(sketch, sources, state.results)
+    getResults: (sketch, sources) => getResults(sketch, sources, state.results),
+    toggleEmailMe: (toggle, uuid, title, project) => toggleEmailMe(toggle, title, `https://analysis.seasketch.org/invocations/detail/${uuid}`, uuid, project),
+    loggedIn: !!localStorage.token
   };
 };
 

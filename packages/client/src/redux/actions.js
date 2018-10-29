@@ -268,6 +268,38 @@ const fetchRequiredSources = (sources, sketch, state, dispatch) => {
   }
 }
 
+export const TOGGLE_EMAIL_SUBSCRIPTION = 'TOGGLE_EMAIL_SUBSCRIPTION';
+export const toggleEmailMe = async (toggle, title, url, uuid, project) => {
+  let token = tokenCache.get(project);
+  if (!token) {
+    token = await fetchTokenForProject(project);
+    if (!token) {
+      throw new Error(`Could not fetch token for project ${project}`)
+    }
+  }
+  fetch(`${API_HOST}/api/email-me`, {
+    method: "POST",
+    headers: new Headers({
+      'content-type': 'application/json',
+      "authorization": `Bearer ${token}`
+    }),
+    body: JSON.stringify({
+      reportName: title,
+      invocationId: uuid,
+      url,
+      toggle
+    })
+  });
+  return {
+    type: TOGGLE_EMAIL_SUBSCRIPTION,
+    toggle,
+    title,
+    url,
+    uuid,
+    project
+  }
+}
+
 export const clearSidebars = () => ({
   type: CLEAR_SIDEBARS
 });

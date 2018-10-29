@@ -48,7 +48,6 @@ const reducer = (state = {}, action) => {
           action.payload
         ];
         if (invocation.logs.length > 1 && new Date(invocation.logs[invocation.logs.length - 1].timestamp) < new Date(invocation.logs[invocation.logs.length - 2].timestamp)) {
-          console.log('needs sort');
           invocation.logs.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
         }
 

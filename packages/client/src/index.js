@@ -31,7 +31,8 @@ import {
   closeReportSidebar,
   openReportSidebar,
   changeReportSidebarTab,
-  clearSidebars
+  clearSidebars,
+  toggleEmailMe
 } from "./redux/actions";
 import {
   setFetchTokenFunction
@@ -111,6 +112,7 @@ export {
   openReportSidebar,
   changeReportSidebarTab,
   clearSidebars,
+  toggleEmailMe,
   // utils
   slugify,
   versionSatisfied,

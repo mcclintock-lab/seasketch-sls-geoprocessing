@@ -21,6 +21,10 @@ const mongoose = require('./lib/mongoose');
 const rateLimit = require("express-rate-limit");
 const debug = require('./lib/debug')
 const ms = require('ms');
+const sendEmails = require('./lib/emailSubscriptions').sendEmails;
+
+sendEmails();
+setInterval(sendEmails, ms('10s'));
 
 const jwksClient = require('jwks-rsa')({
   cache: true,
@@ -232,6 +236,32 @@ router.get('/api/:project/functions/:func/status/:invocationId', wrap( async (re
   const {project, func, invocationId} = req.params;
   const data = await getStatus(invocationId);
   res.json(data);
+}));
+
+// email notifications
+router.post('/api/email-me', optionalAuthMiddleware, wrap( async (req, res) => {
+  const {invocationId, url, reportName} = req.body;
+  let toggle = true;
+  if ('toggle' in req.body) {
+    toggle = req.body.toggle;
+  }
+  const { sub } = req.user;
+  if (!sub) {
+    throw createError(403, "Must be logged in");
+  } else {
+    if (toggle) {
+      let message = "ok";
+      try {
+        await knex('emailSubscriptions').insert({email: sub, invocationId, url, reportName});
+      } catch(e) {
+        message = "already subscribed";
+      }
+      res.send(message);
+    } else {
+      await knex('emailSubscriptions').where({email: sub, invocationId}).del();
+      res.send("OK");
+    }
+  }
 }));
 
 router.get('/api/invocations/:invocationId', wrap( async (req, res) => {

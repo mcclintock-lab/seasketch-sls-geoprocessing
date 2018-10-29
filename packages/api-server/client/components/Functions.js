@@ -56,9 +56,6 @@ class SimpleTable extends React.Component {
     );
   }
 
-  onFunctionClick(func) {
-    console.log(func);
-  }
 }
 
 SimpleTable.propTypes = {

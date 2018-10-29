@@ -146,6 +146,8 @@ class App extends React.Component {
                   }
                 }
               ]}
+              toggleEmailMe={(toggle, uuid, title, project) => SeaSketchReportClient.toggleEmailMe(toggle, title, window.location.toString(), uuid, project)}
+              loggedIn={!!window.user}
             />
           );
         })}

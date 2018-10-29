@@ -83,7 +83,9 @@ class ReportSidebar extends React.Component {
       open,
       menuItems,
       style,
-      tabContentContainerStyle
+      tabContentContainerStyle,
+      toggleEmailMe,
+      loggedIn
     } = this.props;
     const { anchorEl } = this.state;
     if (!title && sketch && sketch.properties) {
@@ -107,8 +109,6 @@ class ReportSidebar extends React.Component {
     if (client && client.tabs && client.tabs.length) {
       ReportTab = client.tabs[selectedTab];
     }
-
-    console.log('results', results);
 
     return (
       <Paper
@@ -249,7 +249,7 @@ class ReportSidebar extends React.Component {
           }
           {complete.length < results.length &&
             !clientError &&
-            !failed.length && <ProgressIndicator eta={results[0].eta} logs={results[0].logPage} />}
+            !failed.length && <ProgressIndicator loggedIn={loggedIn} toggleEmailMe={(toggle) => {toggleEmailMe(toggle, results[0].uuid, sketch.properties.name + ": " + client.tabs[selectedTab].title, results[0].project)}} eta={results[0].eta} logs={results[0].logPage} />}
         </div>
       </Paper>
     );
@@ -276,7 +276,9 @@ ReportSidebar.propTypes = {
   // defaults to false
   open: PropTypes.bool.isRequired,
   closeable: PropTypes.bool,
-  menuItems: PropTypes.arrayOf(PropTypes.object)
+  menuItems: PropTypes.arrayOf(PropTypes.object),
+  toggleEmailMe: PropTypes.func.isRequired,
+  loggedIn: PropTypes.bool.isRequired
 };
 
 ReportSidebar.defaultProps = {

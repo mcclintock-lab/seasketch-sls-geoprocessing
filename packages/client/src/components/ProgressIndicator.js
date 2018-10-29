@@ -1,15 +1,18 @@
 import React from 'react';
 import HumanizedDuration from './HumanizedDuration';
-import CircularProgress from '@material-ui/core/CircularProgress';
 import LinearProgress from '@material-ui/core/LinearProgress';
+import Button from '@material-ui/core/Button';
+import Checkbox from '@material-ui/core/Checkbox';
 
+const EMAIL_NOTIFICATION_PROMPT_THRESHOLD = 1000 * 60 * 5; // 5 minutes
 
 class ProgressIndicator extends React.Component {
   state = {
     ms: 0,
     max: 0,
     started: null,
-    overTime: false
+    overTime: false,
+    emailMe: false
   }
 
   componentDidMount() {
@@ -38,6 +41,15 @@ class ProgressIndicator extends React.Component {
     clearInterval(this.interval);
   }
 
+  // TODO: Display if user is already subscribed from another system, browser session, or ReportSidebar
+  onEmailClick = () => {
+    const toggle = !this.state.emailMe;
+    this.setState({emailMe: toggle});
+    if (this.props.toggleEmailMe) {
+      this.props.toggleEmailMe(toggle);
+    }
+  }
+
   render() {
       return <div style={{width: 400, textAlign: 'center', position: 'absolute', top: 100}}>
         {
@@ -46,6 +58,13 @@ class ProgressIndicator extends React.Component {
         <LinearProgress variant={this.props.eta && this.state.max && this.state.ms > 0 ? "determinate" : "indeterminate"} value={100 - Math.round((this.state.ms / this.state.max) * 100)} style={{marginTop: 10}} />
         {
           (this.state.overTime || (!!this.props.eta && !!this.props.logs && this.state.max > 500)) && <div style={{marginTop: 8, fontSize: 14}}><a style={{color: 'grey'}} href={this.props.logs} target="_blank">see logs</a></div>
+        }
+        {
+          this.props.loggedIn && !!this.props.eta && !!this.state.max && this.state.max >= EMAIL_NOTIFICATION_PROMPT_THRESHOLD && <div style={{marginTop: 20}}><Button onClick={this.onEmailClick}><Checkbox
+          // onClick={this.onEmailClick}
+          checked={this.state.emailMe}
+          value="email"
+        />Email Me When Finished</Button></div>
         }
       </div>
   }
