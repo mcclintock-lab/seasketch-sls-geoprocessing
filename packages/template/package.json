@@ -1,6 +1,6 @@
 {
   "name": "template",
-  "version": "2.4.0",
+  "version": "2.4.1",
   "description": "SeaSketch geoprocessing project template",
   "scripts": {
     "test": "jest",
@@ -26,7 +26,7 @@
     "@seasketch-sls-geoprocessing/client": "^2.4.0",
     "@seasketch-sls-geoprocessing/handlers": "^2.0.0",
     "@seasketch-sls-geoprocessing/packaging": "^2.2.0",
-    "@seasketch-sls-geoprocessing/plugin": "^2.4.0",
+    "@seasketch-sls-geoprocessing/plugin": "^2.4.1",
     "@seasketch-sls-geoprocessing/studio": "^2.2.0",
     "@turf/area": "^6.0.1",
     "babel-core": "^7.0.0-0",
