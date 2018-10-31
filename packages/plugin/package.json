@@ -20,7 +20,7 @@
   },
   "homepage": "https://github.com/mcclintock-lab/seasketch-sls-geoprocessing#readme",
   "dependencies": {
-    "aws-sdk": "^2.300.0",
+    "aws-sdk": "^2.345.0",
     "ncp": "^2.0.0",
     "remote-origin-url": "^1.0.0",
     "uuid": "^3.2.1",
