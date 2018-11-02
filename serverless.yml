@@ -29,6 +29,9 @@ provider:
 
 package:
   individually: true
+  exclude:
+    - packages/
+    - packages/**
 
 functions:
   forwarder:
@@ -180,14 +183,19 @@ resources:
                     - "s3:GetObject"
                     - "s3:ListBucket"
                     - "s3:PutObject"
-                    - "s3: ListObjects"
+                    - "s3:ListObjects"
                   Resource:
-                    Fn::Join:
+                    - Fn::Join:
                       - ''
                       - - Fn::GetAtt:
                           - ReportOutputs
                           - Arn
                         - "/*"
+                    - Fn::Join:
+                      - ''
+                      - - Fn::GetAtt:
+                          - ReportOutputs
+                          - Arn
     AMIWorkerInstanceProfile:
       Type: "AWS::IAM::InstanceProfile"
       Properties:
