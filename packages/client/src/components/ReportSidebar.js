@@ -66,7 +66,7 @@ const styles = theme => ({
   }
 });
 
-class ReportSidebar extends React.Component {
+class ReportSidebar extends React.PureComponent {
   state = {
     anchorEl: null
   };

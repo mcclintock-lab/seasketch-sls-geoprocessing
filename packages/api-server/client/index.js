@@ -17,9 +17,10 @@ ReactDOM.render((
   </Provider>
 ), document.getElementById('app'))
 
-if (process.env.NODE_ENV === 'development') {
-  module.hot.accept();
-}
+// Disable while using alpha react hooks
+// if (process.env.NODE_ENV === 'development') {
+//   module.hot.accept();
+// }
 
 
 fetchProjects(store.dispatch, localStorage.token)

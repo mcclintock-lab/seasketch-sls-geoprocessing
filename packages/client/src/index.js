@@ -10,6 +10,10 @@ import FileDownloadCard from "./components/FileDownloadCard";
 import HumanizedDuration from "./components/HumanizedDuration";
 import {CLIENT_VERSION, PACKAGING_VERSION, versionSatisfied} from './versions.js';
 
+import MapContext from './MapContext';
+import MapboxMapContext from './MapboxMapContext';
+import useTMSLayer from './hooks/useTMSLayer';
+
 import clientsReducer from "./redux/reducers/clients";
 import resultsReducer from "./redux/reducers/results";
 import reportSidebarsReducer from './redux/reducers/reportSidebars';
@@ -53,15 +57,22 @@ const asReportTab = metadata => {
   };
 };
 
+let memo = [];
+
 const getResults = (sketch, sources, state) => {
-  const results = [];
-  for (let source of sources) {
-    const r = state[[source, sketch.properties.id].join("-")];
-    if (r) {
-      results.push(r);
+  if (memo && memo[0] === sketch && memo[1] === sources && memo[2] === state) {
+    return memo[3];
+  } else {
+    const results = [];
+    for (let source of sources) {
+      const r = state[[source, sketch.properties.id].join("-")];
+      if (r) {
+        results.push(r);
+      }
     }
+    memo = [sketch, sources, state, results];
+    return results;  
   }
-  return results;
 }
 
 const slugify = function() {
@@ -117,5 +128,9 @@ export {
   slugify,
   versionSatisfied,
   getResults,
-  setFetchTokenFunction
+  setFetchTokenFunction,
+  MapContext,
+  MapboxMapContext,
+  // hooks
+  useTMSLayer
 };

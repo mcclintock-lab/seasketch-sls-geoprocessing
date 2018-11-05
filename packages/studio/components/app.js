@@ -1,4 +1,4 @@
-import { hot } from 'react-hot-loader'
+// import { hot } from 'react-hot-loader'
 import React from 'react';
 import { BrowserRouter as Router, Route, Link } from "react-router-dom";
 import Clients from '../clients';
@@ -18,4 +18,6 @@ const App = ({ classes }) => (
   </Router>
 );
 
-export default hot(module)(App);
+// Disable hot loading for now while using hooks
+// export default hot(module)(App);
+export default App;

@@ -13,8 +13,10 @@ import JssProvider from 'react-jss/lib/JssProvider';
 import { create } from 'jss';
 import { createGenerateClassName, jssPreset } from '@material-ui/core/styles';
 import {
-  setFetchTokenFunction
+  setFetchTokenFunction,
+  MapContext
 } from "@seasketch-sls-geoprocessing/client";
+import EsriMapContext from './EsriMapContext';
 
 setFetchTokenFunction(async (project) => {
   const response = await fetch(`https://www.seasketch.org/jwt/analysisToken/${window.app.state.get('project').id}/${project}`);
@@ -213,9 +215,11 @@ const init = async clients => {
   const Container = connect(mapStateToProps, mapDispatchToProps, null, {withRef: true})(App);
   ReactDOM.render(
     <Provider store={store}>
-      <JssProvider jss={jss} generateClassName={generateClassName}>
-        <Container ref={(element) => reportSidebar = element.getWrappedInstance()} />
-      </JssProvider>
+      <MapContext.Provider value={EsriMapContext(window.app.projecthomepage.map)}>
+        <JssProvider jss={jss} generateClassName={generateClassName}>
+          <Container ref={(element) => reportSidebar = element.getWrappedInstance()} />
+        </JssProvider>
+      </MapContext.Provider>
     </Provider>,
     newDiv
   )

@@ -8,7 +8,7 @@ module.exports = {
   devtool: true || process.env.NODE_ENV === 'production' ? false : "eval-source-map",
   entry: true || process.env.NODE_ENV === 'production' ? ['@babel/polyfill', './client/index.js'] : [
     '@babel/polyfill',
-    'react-hot-loader/patch',
+    // 'react-hot-loader/patch', // disable for react hooks
     "./client/index.js"
   ],
 
@@ -70,7 +70,7 @@ module.exports = {
     })
   ] : [
     new webpack.IgnorePlugin(/^\.\/locale$/, /moment$/),
-    new webpack.HotModuleReplacementPlugin(),
+    // new webpack.HotModuleReplacementPlugin(), // disable for react hooks
     new HtmlWebpackPlugin({
       template: "./index.html"
     }),
@@ -93,6 +93,6 @@ module.exports = {
     historyApiFallback: {
       rewrites: [{ from: /$!api\//, to: "/index.html" }]
     },
-    hot: true
+    hot: false
   }
 };

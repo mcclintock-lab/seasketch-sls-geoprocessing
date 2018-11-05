@@ -34,6 +34,9 @@ class MapInput extends React.Component {
       center: this.props.initialCenter,
       zoom: this.props.initialZoom
     });
+    if (this.props.mapRef) {
+      this.props.mapRef(this.map);
+    }
     this.Draw = new MapboxDraw({
       displayControlsDefault: false,
       controls: {

@@ -33,7 +33,7 @@
     "babel-jest": "^23.6.0",
     "babel-loader": "^8.0.2",
     "jest": "^22.4.3",
-    "react": "^16.4.2",
+    "react": "^16.7.0-alpha.0",
     "react-dom": "^16.4.2",
     "serverless": "^1.26.1",
     "serverless-log-forwarding": "^1.1.6",

@@ -42,8 +42,8 @@
     "@seasketch-sls-geoprocessing/client": "latest",
     "@seasketch-sls-geoprocessing/packaging": "latest",
     "babel-loader": "^8.0.2",
-    "react": "^16.4.2",
-    "react-dom": "^16.4.2",
+    "react": "^16.7.0-alpha.0",
+    "react-dom": "^16.7.0-alpha.0",
     "webpack": "^4.17.1",
     "webpack-dev-server": "^3.1.5"
   },

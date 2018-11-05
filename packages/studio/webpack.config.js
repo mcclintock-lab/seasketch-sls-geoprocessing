@@ -8,12 +8,13 @@ const package = require(path.join(process.cwd(), 'package.json'));
 const REQUIRED_CLIENT_VERSION = package.dependencies['@seasketch-sls-geoprocessing/client'];
 const REQUIRED_PACKAGING_VERSION = package.dependencies['@seasketch-sls-geoprocessing/packaging'];
 
-babel.plugins.push(
-  path.resolve(
-    require.resolve("react-hot-loader").replace("/index.js", ""),
-    "babel"
-  )
-);
+// Disable hot reload for now while using hooks
+// babel.plugins.push(
+//   path.resolve(
+//     require.resolve("react-hot-loader").replace("/index.js", ""),
+//     "babel"
+//   )
+// );
 
 module.exports = (entry, examples) => {
   const htmlPlugin = new HtmlWebPackPlugin({

@@ -14,7 +14,9 @@ import {
   openReportSidebar,
   closeReportSidebar,
   clearSidebars,
-  toggleEmailMe
+  toggleEmailMe,
+  MapContext,
+  MapboxMapContext
 } from "@seasketch-sls-geoprocessing/client";
 import {
   setFetchTokenFunction
@@ -136,41 +138,46 @@ class ClientDemoPage extends React.Component {
           initialZoom={project.zoom}
           onDrawModeChange={this.onDrawModeChange}
           onInput={this.onInput}
+          mapRef={(map) => this.mapRef = map}
         />
-        {reportSidebars.map(({ selectedTab, sketch, client, position }) => {
-          const tab = client.tabs[selectedTab];
-          const results = getResults(sketch, tab.sources);
-          return (
-            <ReportSidebar
-              key={sketch.properties.id}
-              selectedTab={selectedTab}
-              onChangeTab={(e, tab) =>
-                this.props.onChangeTab(sketch.properties.id, tab)
-              }
-              sketch={sketch}
-              client={client}
-              position={position}
-              results={results}
-              selectedTab={selectedTab}
-              open
-              loggedIn={loggedIn}
-              toggleEmailMe={this.props.toggleEmailMe}
-              menuItems={[
-                {
-                  label: "View logs",
-                  onClick: () => {
-                    window.open(
-                      getResults(sketch, client.tabs[selectedTab].sources)[0].logPage,
-                      "_blank"
-                    );
+        <MapContext.Provider value={MapboxMapContext(this.mapRef)}>
+          {reportSidebars.map(({ selectedTab, sketch, client, position }) => {
+            const tab = client.tabs[selectedTab];
+            const results = getResults(sketch, tab.sources);
+            return (
+              <ReportSidebar
+                key={sketch.properties.id}
+                selectedTab={selectedTab}
+                onChangeTab={this.handleChangeTab}
+                sketch={sketch}
+                client={client}
+                position={position}
+                results={results}
+                selectedTab={selectedTab}
+                open
+                loggedIn={loggedIn}
+                toggleEmailMe={this.props.toggleEmailMe}
+                menuItems={[
+                  {
+                    label: "View logs",
+                    onClick: () => {
+                      window.open(
+                        getResults(sketch, client.tabs[selectedTab].sources)[0].logPage,
+                        "_blank"
+                      );
+                    }
                   }
-                }
-              ]}
-            />
-          );
-        })}
+                ]}
+              />
+            );
+          })}
+        </MapContext.Provider>
       </div>
     );
+  }
+
+  handleChangeTab = (e, tab) => {
+    this.props.onChangeTab(this.props.reportSidebars[0].sketch.properties.id, tab);
   }
 
   onDrawModeChange = e => {

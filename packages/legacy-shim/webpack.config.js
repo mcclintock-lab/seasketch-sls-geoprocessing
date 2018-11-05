@@ -7,7 +7,7 @@ const PACKAGING_VERSION = require('@seasketch-sls-geoprocessing/packaging/packag
 const path = require('path');
 
 module.exports = {
-  mode: "production",
+  mode: "development" || "production",
   entry: `./index.js`,
   output: {
     filename: isDevServer ? "[name].js" : "[name]-[hash].js",

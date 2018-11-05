@@ -24,6 +24,9 @@ class Map extends React.Component {
       zoom: this.props.zoom,
       center: this.props.center
     });
+    if (this.props.mapRef) {
+      this.props.mapRef(this.map);
+    }
     const reduxControl = new ReduxMapControl('map');
     this.reduxControl = reduxControl;
     this.map.addControl(reduxControl)

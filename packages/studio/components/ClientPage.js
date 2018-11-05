@@ -5,12 +5,15 @@ import Map from "./Map";
 import { connect } from "react-redux";
 import { selectExample } from "../actions/examples";
 import {
+  // MapboxMapContext,
+  MapContext,
   ExampleSelect,
   ReportSidebar,
   openReportSidebar,
   changeReportSidebarTab,
   closeReportSidebar,
-  getResults
+  getResults,
+  MapboxMapContext
 } from "@seasketch-sls-geoprocessing/client";
 import clients from "../clients";
 
@@ -52,6 +55,7 @@ class ClientPage extends React.Component {
       onChangeTab,
       getResults
     } = this.props;
+
     return (
       <div className={classes.root}>
         <ExampleSelect
@@ -59,26 +63,34 @@ class ClientPage extends React.Component {
           example={selectedExample}
           onChange={this.onExampleChange.bind(this)}
         />
-        <Map example={example} />
-        {reportSidebars.map(({ selectedTab, sketch, client, position }) => {
-          const tab = client.tabs[selectedTab];
-          const results = getResults(sketch, tab.sources);
-          return (
-            <ReportSidebar
-              key={sketch.properties.id}
-              selectedTab={selectedTab}
-              onChangeTab={(e, tab) => this.props.onChangeTab(sketch.properties.id, tab)}
-              sketch={sketch}
-              client={client}
-              position={position}
-              results={results}
-              selectedTab={selectedTab}
-              open
-            />
-          );
-        })}
+        <Map example={example} mapRef={(map) => this.mapRef = map} />
+        <MapContext.Provider value={MapboxMapContext(this.mapRef)}>
+          {reportSidebars.map(({ selectedTab, sketch, client, position }) => {
+            const tab = client.tabs[selectedTab];
+            const results = getResults(sketch, tab.sources);
+            return (
+              <ReportSidebar
+                key={sketch.properties.id}
+                selectedTab={selectedTab}
+                onChangeTab={this.handleChangeTab}
+                sketch={sketch}
+                client={client}
+                position={position}
+                results={results}
+                selectedTab={selectedTab}
+                loggedIn={false}
+                open
+                toggleEmailMe={null}
+              />
+            );
+          })}
+        </MapContext.Provider>
       </div>
     );
+  }
+
+  handleChangeTab = (e, tab) => {
+    this.props.onChangeTab(this.props.reportSidebars[0].sketch.properties.id, tab);
   }
 }
 
